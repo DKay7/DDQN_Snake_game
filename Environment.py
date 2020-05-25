@@ -6,6 +6,9 @@ import Game_Parameters
 
 
 class Environment:
+    """
+    Класс среды
+    """
     def __init__(self):
         # Creating snake
         self.snakes = [snake.SnakeElement(Game_Parameters.white), snake.SnakeElement(Game_Parameters.white)]
@@ -39,6 +42,13 @@ class Environment:
         self.all_sprites.add(self.prize)
 
     def crash(self):
+        """
+        Определяет, погибла змейка или нет ( гибель - столкновение со стенками или самой змейкой)
+
+        :rtype: bool
+
+        :return: Если произошло столкновение - True, иначе - False
+        """
         k = 0
 
         for i in range(1, len(self.snakes)):
@@ -60,7 +70,14 @@ class Environment:
             return False
 
     def eat_prize(self):
+        """
+        Определяет, было ли сьедено змейкой яблоко ( здесь - "приз" )\n
+        Если "приз" был сьеден - генерирует новые координаты приза
 
+        :rtype: bool
+
+        :return: Если приз был сьеден - True, иначе - False
+        """
         if self.snakes[0].get_snake_element_x() == self.prize.get_prize_x() and \
                 self.snakes[0].get_snake_element_y() == self.prize.get_prize_y():
 
@@ -85,14 +102,26 @@ class Environment:
             return False
 
     def upgrade(self):
-
+        """
+        Увеличивает длину змейки на один элемент
+        """
         self.snakes.append(snake.SnakeElement(Game_Parameters.white))
         self.snakes[len(self.snakes) - 1].set_snake_element_x(self.last_x)
         self.snakes[len(self.snakes) - 1].set_snake_element_y(self.last_y)
         self.all_sprites.add(self.snakes[len(self.snakes) - 1])
 
     def game_step(self, chosen_action):
+        """
+        Исполняет один шаг игры - сдвигает змейку, проверяет ее на возможное столкновение и поедание приза,\
+        при необходимости отрисовывает новый кадр ( отрисовку можно отключить установив поле graphic\
+        класса Environment на False)
 
+        :rtype: tuple
+
+        :param chosen_action: Выбранное нейросетью действие для данного шага игры
+
+        :return: Резульат функции get_data()
+        """
         self.reward = -1
 
         if chosen_action == 1 and snake.orientation != 'right':
@@ -141,10 +170,22 @@ class Environment:
 
     @staticmethod
     def end_game():
+        """
+        Заканчивает игру
+        """
         pygame.quit()
 
     def get_data(self):
+        """
+        Определяет текущее состояние системы: наличие приза в пределах 10 клеток вокруг (если приз есть -\
+        возвращает его координаты, иначе (-1, -1) ), координаты головы змеи, награду за текущий шаг и\
+        переменную состояние игры (True, если игра продолжается, False, если игра закончилась)
 
+        :rtype: tuple, bool
+
+        :return: Tuple, Bool - такие, что Tuple =  (координата Х приза, координата Y приза, координата Х головы,\
+            координата Y головы, награда за текущее действие), Bool = переменная состояния игры
+        """
         if self.snakes[0].get_snake_element_x() + 10 * Game_Parameters.cell >= self.prize.get_prize_x() \
                 >= self.snakes[0].get_snake_element_x() - 10 * Game_Parameters.cell and \
                 self.snakes[0].get_snake_element_y() + 10 * Game_Parameters.cell >= self.prize.get_prize_y() \
@@ -157,9 +198,11 @@ class Environment:
 
         return prize_cord + head_cord_and_reward, self.game_running
 
-
     def return_to_start(self):
-
+        """
+        Возвращает данные к начальному значению:
+        Длину змеи устанавливает на 2, помещает змею в центр
+        """
         self.snakes = [snake.SnakeElement(Game_Parameters.white), snake.SnakeElement(Game_Parameters.white)]
         self.snakes[1].set_snake_element_x(self.snakes[1].get_snake_element_x() + 20)
         self.all_sprites.add(i for i in self.snakes)
