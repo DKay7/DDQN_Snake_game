@@ -7,10 +7,10 @@ class Prize(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
 
-        self.x = random.randint(10, Game_Parameters.width - 10) // Game_Parameters.cell * Game_Parameters.cell\
-            + Game_Parameters / 2
-        self.y = random.randint(10, Game_Parameters.height - 10) // Game_Parameters.cell * Game_Parameters.cell\
-            + Game_Parameters / 2
+        self.x = random.randint(10, Game_Parameters.width - 10) // Game_Parameters.cell * Game_Parameters.cell \
+            + Game_Parameters.cell / 2
+        self.y = random.randint(10, Game_Parameters.height - 10) // Game_Parameters.cell * Game_Parameters.cell \
+            + Game_Parameters.cell / 2
 
         self.color = Game_Parameters.red
 
