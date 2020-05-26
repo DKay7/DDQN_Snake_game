@@ -3,6 +3,7 @@ import snake
 import random
 import prize_object
 import Game_Parameters
+import pyautogui
 
 
 class Environment:
@@ -206,3 +207,12 @@ class Environment:
         self.snakes = [snake.SnakeElement(Game_Parameters.white), snake.SnakeElement(Game_Parameters.white)]
         self.snakes[1].set_snake_element_x(self.snakes[1].get_snake_element_x() + 20)
         self.all_sprites.add(i for i in self.snakes)
+
+    @staticmethod
+    def get_screen():
+        screen_location = pyautogui.locateOnScreen('snake_head.png', confidence=0.9)
+        im = pyautogui.screenshot(region=(screen_location[0],
+                                          screen_location[1] + screen_location[3],
+                                          Game_Parameters.width,
+                                          Game_Parameters.height))
+        return im
