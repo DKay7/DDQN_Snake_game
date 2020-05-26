@@ -16,7 +16,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73d58eda-9d1f-4630-9176-bdd917993619" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/QNetwork.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/neuron_snake.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/neuron_snake.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Environment.py" beforeDir="false" afterPath="$PROJECT_DIR$/Environment.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,7 +48,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Gradient_descent" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunManager">
@@ -103,13 +109,31 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1590401142866" />
-    <state x="1220" y="278" key="FileChooserDialogImpl" timestamp="1590401141950">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="894" y="230" key="FileChooserDialogImpl" timestamp="1590438696712">
+      <screen x="0" y="0" width="1440" height="860" />
     </state>
+    <state x="894" y="230" key="FileChooserDialogImpl/0.0.1440.860@0.0.1440.860" timestamp="1590438696712" />
     <state x="1220" y="278" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1590401141950" />
-    <state x="461" y="165" key="SettingsEditor" timestamp="1590401097489">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1385" height="232" key="GridCell.Tab.0.bottom" timestamp="1590517468880">
+      <screen x="0" y="0" width="1440" height="860" />
     </state>
+    <state width="1385" height="232" key="GridCell.Tab.0.bottom/0.0.1440.860@0.0.1440.860" timestamp="1590517468880" />
+    <state width="1385" height="232" key="GridCell.Tab.0.center" timestamp="1590517468880">
+      <screen x="0" y="0" width="1440" height="860" />
+    </state>
+    <state width="1385" height="232" key="GridCell.Tab.0.center/0.0.1440.860@0.0.1440.860" timestamp="1590517468880" />
+    <state width="1385" height="232" key="GridCell.Tab.0.left" timestamp="1590517468879">
+      <screen x="0" y="0" width="1440" height="860" />
+    </state>
+    <state width="1385" height="232" key="GridCell.Tab.0.left/0.0.1440.860@0.0.1440.860" timestamp="1590517468879" />
+    <state width="1385" height="232" key="GridCell.Tab.0.right" timestamp="1590517468880">
+      <screen x="0" y="0" width="1440" height="860" />
+    </state>
+    <state width="1385" height="232" key="GridCell.Tab.0.right/0.0.1440.860@0.0.1440.860" timestamp="1590517468880" />
+    <state x="223" y="0" key="SettingsEditor" timestamp="1590432340280">
+      <screen x="0" y="0" width="1440" height="860" />
+    </state>
+    <state x="223" y="0" key="SettingsEditor/0.0.1440.860@0.0.1440.860" timestamp="1590432340280" />
     <state x="461" y="165" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1590401097489" />
     <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1590402137237">
       <screen x="0" y="0" width="1920" height="1040" />
