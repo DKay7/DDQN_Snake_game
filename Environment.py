@@ -10,7 +10,7 @@ class Environment:
     """
     Класс среды
     """
-    def __init__(self):
+    def __init__(self, graphic=True):
         # Creating snake
         self.snakes = [snake.SnakeElement(Game_Parameters.white), snake.SnakeElement(Game_Parameters.white)]
         self.snakes[1].set_snake_element_x(self.snakes[1].get_snake_element_x() + 20)
@@ -19,7 +19,7 @@ class Environment:
         self.prize = prize_object.Prize()
 
         # Graphics on/off
-        self.graphic = False
+        self.graphic = graphic
 
         # Reward field
         self.reward = 0
