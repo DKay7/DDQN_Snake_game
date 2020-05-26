@@ -30,17 +30,22 @@ class Environment:
 
         # Game init
         pygame.init()
-        pygame.mixer.init()
-        self.screen = pygame.display.set_mode((Game_Parameters.width, Game_Parameters.height))
-        pygame.display.set_caption("Snake")
+        if graphic:
+            pygame.mixer.init()
+            self.screen = pygame.display.set_mode((Game_Parameters.width, Game_Parameters.height))
+            pygame.display.set_caption("Snake")
+
         self.clock = pygame.time.Clock()
 
-        self.game_running = 1
+        self.game_running = True
 
         # Create sprite group and adding prize and snake to this group
         self.all_sprites = pygame.sprite.Group()
         self.all_sprites.add(i for i in self.snakes)
         self.all_sprites.add(self.prize)
+
+    def get_game_running(self):
+        return self.game_running
 
     def crash(self):
         """
@@ -151,7 +156,7 @@ class Environment:
         self.last_y = self.snakes[len(self.snakes) - 1].get_snake_element_y()
 
         if self.crash():
-            self.game_running = 0
+            self.game_running = False
             self.reward += Game_Parameters.crash_reward
 
         if self.eat_prize():
@@ -167,7 +172,8 @@ class Environment:
             self.all_sprites.draw(self.screen)
             pygame.display.flip()
 
-        self.get_data()
+        value = self.get_data()
+        return value
 
     @staticmethod
     def end_game():
