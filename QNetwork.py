@@ -1,41 +1,35 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from copy import deepcopy
+import torch.nn.functional as f
+import numpy as np
 
 
-class QNetwork:
+class DeepQNetwork(nn.Module):
 
-    def __init__(self):
+    def __init__(self, lr, input_dims, fc1_dims, fc2_dims, n_actions):
+
+        super(DeepQNetwork, self).__init__()
+
+        self.input_dims = input_dims
+        self.fc1_dims = fc1_dims
+        self.fc2_dims = fc2_dims
+        self.n_actions = n_actions
+
+        self.lr = lr
+        self.loss = nn.MSELoss()
+        self.optimizer = optim.AdamW(self.parameters(), amsgrad=True)
+
+        self.fc1 = nn.Linear(*self.input_dims, self.fc1_dims)
+        self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
+        self.fc3 = nn.Linear(self.fc2_dims, self.n_actions)
+
         self.device = torch.device('cuda')
+        self.to(self.device)
 
-        self.model = None
-        self.target_model = None
-        self.optimizer = None
+    def forward(self, x):
+        x = f.ReLU(self.fc1(x))
+        x = f.ReLU(self.fc2(x))
+        x = self.fc3(x)
 
-    def create_model(self):
-
-        def init_weights(layer):
-            if type(layer) == nn.Linear:
-                nn.init.xavier_normal(layer.weight)
-
-        self.model = nn.Sequential(
-            nn.Linear(5, 32),
-            nn.ReLU(),
-
-            nn.Linear(32, 32),
-            nn.ReLU(),
-
-            nn.Linear(32, 5)
-        )
-
-        self.target_model = deepcopy(model)
-        self.optimizer = optim.Adam(self.model.parameters())
-
-        self.model.apply(init_weights)
-        self.model = self.model.to(self.device)
-        self.target_model = self.target_model.to(self.device)
-
-        return self.model, self.target_model, self.optimizer
-
-
+        return x
