@@ -110,7 +110,7 @@ class Environment:
         self.snakes[len(self.snakes) - 1].set_snake_element_y(self.last_y)
         self.all_sprites.add(self.snakes[len(self.snakes) - 1])
 
-    def game_step(self, chosen_action):
+    def step(self, chosen_action):
         """
         Исполняет один шаг игры - сдвигает змейку, проверяет ее на возможное столкновение и поедание приза,\
         при необходимости отрисовывает новый кадр ( отрисовку можно отключить установив поле graphic\
@@ -122,6 +122,7 @@ class Environment:
 
         :return: Резульат функции get_data()
         """
+
         self.reward = -1
 
         if chosen_action == 1 and snake.orientation != 'right':
@@ -166,7 +167,8 @@ class Environment:
             self.all_sprites.draw(self.screen)
             pygame.display.flip()
 
-        self.get_data()
+        self.get_data(chosen_action)
+
 
     @staticmethod
     def end_game():
@@ -175,7 +177,7 @@ class Environment:
         """
         pygame.quit()
 
-    def get_data(self):
+    def get_data(self, action):
         """
         Определяет текущее состояние системы: наличие приза в пределах 10 клеток вокруг (если приз есть -\
         возвращает его координаты, иначе (-1, -1) ), координаты головы змеи, награду за текущий шаг и\
@@ -194,11 +196,27 @@ class Environment:
         else:
             prize_cord = (-1, -1)
 
-        head_cord_and_reward = (self.snakes[0].get_snake_element_x(), self.snakes[0].get_snake_element_y(), self.reward)
+        dx = 0
+        dy = 0
 
-        return prize_cord + head_cord_and_reward, self.game_running
+        if action == 1 and snake.orientation != 'right':
+            dx = -Game_Parameters.moving_speed
+        elif action == 3 and snake.orientation != 'left':
+            dx = Game_Parameters.moving_speed
+        elif action == 2 and snake.orientation != 'down':
+            dy = -Game_Parameters.moving_speed
+        elif action == 4 and snake.orientation != 'up':
+            dy = Game_Parameters.moving_speed
 
-    def return_to_start(self):
+        state = prize_cord + (self.snakes[0].get_snake_element_x(),
+                              self.snakes[0].get_snake_element_y())
+
+        next_state = prize_cord + (self.snakes[0].get_snake_element_x()+dx,
+                                   self.snakes[0].get_snake_element_y()+dy)
+
+        return state, next_state, self.reward, self.game_running
+
+    def reset(self):
         """
         Возвращает данные к начальному значению:
         Длину змеи устанавливает на 2, помещает змею в центр

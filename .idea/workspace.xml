@@ -16,12 +16,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73d58eda-9d1f-4630-9176-bdd917993619" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/QNetwork.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/neuron_snake.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/neuron_snake.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Environment.py" beforeDir="false" afterPath="$PROJECT_DIR$/Environment.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/QNetwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/QNetwork.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -48,11 +45,32 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Gradient_descent" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/Environment.py" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager">
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.Environment">
+    <configuration name="Environment" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="neuron_snake" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\DKay\PycharmProjects\Neuron_snake\venv\Scripts\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Environment.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="neuron_snake" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -67,17 +85,16 @@
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="EMULATE_TERMINAL" value="true" />
       <option name="MODULE_MODE" value="false" />
       <option name="REDIRECT_INPUT" value="false" />
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Python.main" />
-      </list>
-    </recent_temporary>
+    <list>
+      <item itemvalue="Python.main" />
+      <item itemvalue="Python.Environment" />
+    </list>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -105,36 +122,41 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590401142866">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="311" y="145" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1592011140161">
+      <screen x="0" y="0" width="1440" height="860" />
     </state>
+    <state x="311" y="145" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1440.860@0.0.1440.860" timestamp="1592011140161" />
     <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1590401142866" />
-    <state x="894" y="230" key="FileChooserDialogImpl" timestamp="1590438696712">
+    <state x="894" y="230" key="FileChooserDialogImpl" timestamp="1592011138632">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state x="894" y="230" key="FileChooserDialogImpl/0.0.1440.860@0.0.1440.860" timestamp="1590438696712" />
+    <state x="894" y="230" key="FileChooserDialogImpl/0.0.1440.860@0.0.1440.860" timestamp="1592011138632" />
     <state x="1220" y="278" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1590401141950" />
-    <state width="1385" height="232" key="GridCell.Tab.0.bottom" timestamp="1590517468880">
+    <state width="1385" height="143" key="GridCell.Tab.0.bottom" timestamp="1592011145314">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="232" key="GridCell.Tab.0.bottom/0.0.1440.860@0.0.1440.860" timestamp="1590517468880" />
-    <state width="1385" height="232" key="GridCell.Tab.0.center" timestamp="1590517468880">
+    <state width="1385" height="143" key="GridCell.Tab.0.bottom/0.0.1440.860@0.0.1440.860" timestamp="1592011145314" />
+    <state width="1385" height="143" key="GridCell.Tab.0.center" timestamp="1592011145314">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="232" key="GridCell.Tab.0.center/0.0.1440.860@0.0.1440.860" timestamp="1590517468880" />
-    <state width="1385" height="232" key="GridCell.Tab.0.left" timestamp="1590517468879">
+    <state width="1385" height="143" key="GridCell.Tab.0.center/0.0.1440.860@0.0.1440.860" timestamp="1592011145314" />
+    <state width="1385" height="143" key="GridCell.Tab.0.left" timestamp="1592011145314">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="232" key="GridCell.Tab.0.left/0.0.1440.860@0.0.1440.860" timestamp="1590517468879" />
-    <state width="1385" height="232" key="GridCell.Tab.0.right" timestamp="1590517468880">
+    <state width="1385" height="143" key="GridCell.Tab.0.left/0.0.1440.860@0.0.1440.860" timestamp="1592011145314" />
+    <state width="1385" height="143" key="GridCell.Tab.0.right" timestamp="1592011145314">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="232" key="GridCell.Tab.0.right/0.0.1440.860@0.0.1440.860" timestamp="1590517468880" />
-    <state x="223" y="0" key="SettingsEditor" timestamp="1590432340280">
+    <state width="1385" height="143" key="GridCell.Tab.0.right/0.0.1440.860@0.0.1440.860" timestamp="1592011145314" />
+    <state x="223" y="0" key="SettingsEditor" timestamp="1591982165020">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state x="223" y="0" key="SettingsEditor/0.0.1440.860@0.0.1440.860" timestamp="1590432340280" />
+    <state x="223" y="0" key="SettingsEditor/0.0.1440.860@0.0.1440.860" timestamp="1591982165020" />
     <state x="461" y="165" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1590401097489" />
+    <state x="525" y="162" key="refactoring.ChangeSignatureDialog" timestamp="1592011713585">
+      <screen x="0" y="0" width="1440" height="860" />
+    </state>
+    <state x="525" y="162" key="refactoring.ChangeSignatureDialog/0.0.1440.860@0.0.1440.860" timestamp="1592011713585" />
     <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1590402137237">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
