@@ -88,10 +88,12 @@ class Agent:
         self.env = env
         self.env.seed(randint(0, 420000))
 
-        self.model = model
-        self.target_model = target_model
-        self.optimizer = optimizer
-        self.criterion = criterion
+        # TODO сделать размеры внешних слоев зависящими от среды напрямую, без ручного ввода
+        self.model = DeepQNetwork(input_dims=2, fc1_dims=32, fc2_dims=32, n_actions=3)
+        self.target_model = DeepQNetwork(input_dims=2, fc1_dims=32, fc2_dims=32, n_actions=3)
+
+        self.optimizer = optim.Adam(dqn.parameters(), lr=0.001)
+        self.criterion = nn.MSELoss()
 
         self.epochs = epochs
 
@@ -99,7 +101,6 @@ class Agent:
 
     def fit(self, batch):
         state, action, reward, next_state, done = batch
-        # TODO разобраться в порядке применения .to() и .float()
         state = torch.tensor(state).to(self.device).float()
         action = torch.tensor(action).to(self.device)
         reward = torch.tensor(reward).to(self.device).float()
@@ -107,7 +108,7 @@ class Agent:
         done = torch.tensor(done).to(self.device)
 
         with torch.no_grad():
-            q_target = self.target_model(next_state).max(1)[0].view(-1)
+            q_target = self.target_model(next_state).max(1)[0]
             q_target = reward + self.gamma * q_target
 
         q = self.model(state).gather(1, action.unsqueeze(1))
@@ -161,10 +162,9 @@ class Agent:
 
             if epoch > self.batch_size:
                 loss = self.fit(self.memory.sample(batch_size=self.batch_size))
-                loss = str(round(loss.item(), 7)) + '0' * (7-len(str(round(loss.item(), 7))))
 
                 tqdm.write('epoch: {0},\tloss: {1},\tlast eval reward: {2}'.format(epoch,
-                                                                                   loss,
+                                                                                   loss.item(),
                                                                                    eval_reward).expandtabs())
         self.target_model.load_state_dict(best_params)
         self.save_model(self.model, type_='optim')
@@ -205,6 +205,9 @@ class Agent:
         затем сохраняет их под именем, переданным в конструктор
         класса
 
+        :param visualize: Выводить ли график. Если False,
+        то график просто сохраняется в директорию
+        
         :param file_name: Имя файла для сохранеия графика,
             если не передано, будет взято имя,
             переданное в конструктор класса

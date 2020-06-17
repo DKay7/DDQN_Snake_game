@@ -11,18 +11,9 @@ import gym
 
 env = gym.make("MountainCar-v0")
 
-dqn = DeepQNetwork(input_dims=2, fc1_dims=32, fc2_dims=32, n_actions=3)
-
-optimizer = optim.Adam(dqn.parameters(), lr=0.001)
-loss = nn.MSELoss()
-
 agent = Agent(
     env=env,
-    model=dqn,
-    target_model=dqn,
-    optimizer=optimizer,
-    criterion=loss,
-    file_name='test4',
+    file_name='test5',
     max_epsilon=0.57,
     min_epsilon=0.05,
     epochs=100000
@@ -30,7 +21,7 @@ agent = Agent(
 
 # agent.load_model(agent.model, type_='optim')
 # agent.load_model(agent.target_model, type_='target')
-# agent.train()
+agent.train()
 # agent.plotter()
 # c = input('press any key')
 
