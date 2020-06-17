@@ -208,13 +208,10 @@ class Environment:
         elif action == 4 and snake.orientation != 'up':
             dy = Game_Parameters.moving_speed
 
-        state = prize_cord + (self.snakes[0].get_snake_element_x(),
-                              self.snakes[0].get_snake_element_y())
-
         next_state = prize_cord + (self.snakes[0].get_snake_element_x()+dx,
                                    self.snakes[0].get_snake_element_y()+dy)
 
-        return state, next_state, self.reward, self.game_running
+        return next_state, self.reward, self.game_running
 
     def reset(self):
         """
@@ -222,5 +219,11 @@ class Environment:
         Длину змеи устанавливает на 2, помещает змею в центр
         """
         self.snakes = [snake.SnakeElement(Game_Parameters.white), snake.SnakeElement(Game_Parameters.white)]
+        x = random.randint(Game_Parameters.cell, Game_Parameters.width - Game_Parameters.cell)
+        x = x - x % Game_Parameters.cell
+        y = random.randint(Game_Parameters.cell, Game_Parameters.height - Game_Parameters.cell)
+        y = y - y % Game_Parameters.cell
+        self.snakes[0].set_snake_element_x(x)
+        self.snakes[0].set_snake_element_y(y)
         self.snakes[1].set_snake_element_x(self.snakes[1].get_snake_element_x() + 20)
         self.all_sprites.add(i for i in self.snakes)

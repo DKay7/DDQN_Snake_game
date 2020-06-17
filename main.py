@@ -19,18 +19,30 @@ loss = nn.MSELoss()
 agent = Agent(
     env=env,
     model=dqn,
+    target_model=dqn,
     optimizer=optimizer,
     criterion=loss,
-    scheduler=None,
-    file_name='kuku1',
-    max_epsilon=0.7,
-    min_epsilon=0.1,
+    file_name='test4',
+    max_epsilon=0.57,
+    min_epsilon=0.05,
     epochs=100000
 )
 
-agent.train()
-agent.plotter()
+# agent.load_model(agent.model, type_='optim')
+# agent.load_model(agent.target_model, type_='target')
+# agent.train()
+# agent.plotter()
+# c = input('press any key')
 
+
+times, mean, unsuccessful, mean_unsuccessful = agent.show_playing(visualize=False, print_=False, epochs=20)
+
+print('Mean: ', mean,
+      '\nUnsuccessful: ', unsuccessful,
+      '\nMean unsuccessful: ', mean_unsuccessful, '%',
+      '\nMax time: ', max(times),
+      '\nMin time: ', min(times),
+      sep='')
 
 
 

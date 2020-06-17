@@ -62,40 +62,38 @@ class DeepQNetwork(nn.Module):
 class Agent:
     def __init__(self,
                  env,
-                 model,
                  optimizer,
                  criterion,
-                 scheduler,
                  file_name,
                  max_epsilon,
                  min_epsilon,
+                 model,
+                 target_model,
                  target_update=1000,
-                 memory_size=5000,
-                 use_scheduler=True,
+                 memory_size=4096,
                  epochs=25,
                  batch_size=16):
 
-        self.gamma = 0.99
+        self.gamma = 0.97
         self.max_epsilon = max_epsilon
         self.min_epsilon = min_epsilon
         self.target_update = target_update
+
+        self.file_name = file_name
+        self.batch_size = batch_size
 
         self.device = torch.device("cuda")
 
         self.memory = Memory(capacity=memory_size)
         self.env = env
+        self.env.seed(randint(0, 420000))
 
         self.model = model
-        self.target_model = deepcopy(model)
+        self.target_model = target_model
         self.optimizer = optimizer
         self.criterion = criterion
-        self.scheduler = scheduler
 
-        self.use_scheduler = use_scheduler
         self.epochs = epochs
-
-        self.file_name = file_name
-        self.batch_size = batch_size
 
         self.history = []
 
@@ -109,10 +107,7 @@ class Agent:
         done = torch.tensor(done).to(self.device)
 
         with torch.no_grad():
-            q_target = torch.zeros(reward.size()[0]).float().to(self.device)
             q_target = self.target_model(next_state).max(1)[0].view(-1)
-            q_target[done] = 0
-
             q_target = reward + self.gamma * q_target
 
         q = self.model(state).gather(1, action.unsqueeze(1))
@@ -122,7 +117,7 @@ class Agent:
         loss = self.criterion(q, q_target.unsqueeze(1))
         loss.backward()
 
-        for param in model.parameters():
+        for param in self.model.parameters():
             param.grad.data.clamp_(-1, 1)
 
         self.optimizer.step()
@@ -133,8 +128,13 @@ class Agent:
 
         done = True
         new_state = None
+        eval_reward = None
+        best_eval_reward = float('-inf')
+        best_params = None
 
         for epoch in tqdm(range(self.epochs)):
+
+            self.env.seed(randint(0, 42000))
 
             if done:
                 state = self.env.reset()
@@ -146,36 +146,60 @@ class Agent:
 
             new_state, reward, done, _ = self.env.step(action)
 
-            modified_reward = reward + 300 * (self.gamma * abs(new_state[1]) - abs(state[1]))
+            modified_reward = self.modified_reward(reward, state, new_state)
+
             self.memory.push((state, action, modified_reward, new_state, done))
+
+            if epoch % self.target_update == 0:
+                self.target_model.load_state_dict(self.model.state_dict())
+                eval_reward = self.eval_epoch()
+                self.history.append(eval_reward)
+
+                if eval_reward > best_eval_reward:
+                    best_eval_reward = eval_reward
+                    best_params = self.target_model.state_dict()
 
             if epoch > self.batch_size:
                 loss = self.fit(self.memory.sample(batch_size=self.batch_size))
-                tqdm.write('epoch: {0}, loss: {1}'.format(epoch, loss.item()))
+                loss = str(round(loss.item(), 7)) + '0' * (7-len(str(round(loss.item(), 7))))
 
-            if epoch % self.target_update == 0:
-                self.target_model = deepcopy(self.model)
-                state = self.env.reset()
-                total_reward = 0
+                tqdm.write('epoch: {0},\tloss: {1},\tlast eval reward: {2}'.format(epoch,
+                                                                                   loss,
+                                                                                   eval_reward).expandtabs())
+        self.target_model.load_state_dict(best_params)
+        self.save_model(self.model, type_='optim')
+        self.save_model(self.target_model, type_='target')
 
-                while not done:
-                    action = self.action_choice(state, 0, self.target_model)
-                    state, reward, done, _ = self.env.step(action)
-                    total_reward += reward
+    def modified_reward(self, reward, state, new_state):
+        modify_reward = reward + 300 * (abs(new_state[1]) - self.gamma * abs(state[1]))
+        return modify_reward
 
-                self.history.append(total_reward)
+    def eval_epoch(self):
+        state = self.env.reset()
+        total_reward = 0
+        done = False
+
+        self.target_model.eval()
+
+        while not done:
+            action = self.action_choice(state, 0, self.target_model)
+            state, reward, done, _ = self.env.step(action)
+            total_reward += reward
+
+        self.target_model.train()
+
+        return total_reward
 
     def action_choice(self, state, epsilon, model):
         if random() < epsilon:
-            # TODO don't forget
-            action = randint(0, 2)
+            action = self.env.action_space.sample()
 
         else:
-            action = model(torch.tensor(state).to(self.device).float()).max(0)[1].view(1, 1).item()
+            action = model(torch.tensor(state).to(self.device).float()).max(0)[1].item()
 
         return action
 
-    def plotter(self, history=None, file_name=None):
+    def plotter(self, history=None, file_name=None, visualize=True):
         """
         Строит графики точности и ошибки от эпохи обучения,
         затем сохраняет их под именем, переданным в конструктор
@@ -195,11 +219,14 @@ class Agent:
         if file_name is None:
             file_name = self.file_name
 
+        if history is None:
+            history = self.get_history()
+
         path = 'plots/' + file_name + '.png'
 
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(16, 10))
 
-        axes.plot(self.history, label="score per iterations")
+        axes.plot(history, label="score per iterations")
 
         axes.set_xlabel('iterations')
         axes.set_ylabel('score')
@@ -208,4 +235,95 @@ class Agent:
         fig.suptitle(self.file_name)
 
         fig.savefig(path)
-        plt.show()
+        if visualize:
+            plt.show()
+
+    def save_model(self, model, file_name=None, type_='optim'):
+        if file_name is None:
+            file_name = self.file_name
+
+        path = 'models/' + file_name + '_' + type_ + '.pth'
+
+        torch.save(model.state_dict(), path)
+
+    def load_model(self, model, file_name=None, type_='optim'):
+        """
+        Загружает параметры нейронной сети
+
+        :param type_: тип модели (оптимизитор или таргет)
+        :param model: объект модели для записи загруженных параметров
+        :param file_name: Имя файла для весов модели,
+            если не передано, будет взято имя, переданное в конструктор класса
+        """
+
+        if file_name is None:
+            file_name = self.file_name
+
+        path = 'models/' + file_name + '_' + type_ + '.pth'
+
+        model.load_state_dict(torch.load(path))
+
+    def save_history(self, file_name=None):
+        """
+        Сохраняет историю обучения.
+
+        :param file_name: Имя файла для сохранеия истории,
+            если не передано, будет взято имя,
+            переданное в конструктор класса
+        """
+        if file_name is None:
+            file_name = self.file_name
+
+        with open('histories/' + file_name + '.pickle', 'wb') as file:
+            torch.save(self.history, file)
+
+    def get_history(self, file_name=None):
+        """
+
+        :param file_name: Имя файла для загрузки истории,
+            если не передано, будет взято имя,
+            переданное в конструктор класса
+        :return:
+        """
+        if file_name is None:
+            file_name = self.file_name
+
+        if self.history is None or self.history == []:
+            with open('histories/' + file_name + '.pickle', 'rb') as file:
+                self.history = torch.load(file)
+
+        return self.history
+
+    def show_playing(self, visualize=True, print_=True, epochs=10):
+        live_times = []
+
+        for _ in tqdm(range(epochs)):
+            done = False
+            live_time = 0
+            self.env.seed(randint(0, 2**17))
+            state = self.env.reset()
+            self.target_model.eval()
+
+            while not done:
+                action = self.action_choice(state=state, epsilon=0, model=self.target_model)
+
+                new_state, reward, done, _ = self.env.step(action)
+                modified_reward = self.modified_reward(reward, state, new_state)
+
+                if visualize:
+                    self.env.render(mode='human')
+
+                if print_:
+                    tqdm.write(f"Action: {action}\nReward: {reward}\nModified reward: {modified_reward}")
+
+                live_time += 1
+
+                state = new_state
+
+            self.env.close()
+            live_times.append(live_time)
+
+        mean = sum(live_times)/epochs
+        unsuccessful = sum(map(lambda x: 0 if x < 200 else 1, live_times))
+        mean_unsuccessful = unsuccessful / epochs * 100
+        return live_times, mean,  unsuccessful, mean_unsuccessful
