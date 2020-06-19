@@ -62,13 +62,9 @@ class DeepQNetwork(nn.Module):
 class Agent:
     def __init__(self,
                  env,
-                 optimizer,
-                 criterion,
                  file_name,
                  max_epsilon,
                  min_epsilon,
-                 model,
-                 target_model,
                  target_update=1000,
                  memory_size=4096,
                  epochs=25,
@@ -86,13 +82,13 @@ class Agent:
 
         self.memory = Memory(capacity=memory_size)
         self.env = env
-        self.env.seed(randint(0, 420000))
+        # self.env.seed(randint(0, 420000))
 
         # TODO сделать размеры внешних слоев зависящими от среды напрямую, без ручного ввода
         self.model = DeepQNetwork(input_dims=2, fc1_dims=32, fc2_dims=32, n_actions=3)
         self.target_model = DeepQNetwork(input_dims=2, fc1_dims=32, fc2_dims=32, n_actions=3)
 
-        self.optimizer = optim.Adam(dqn.parameters(), lr=0.001)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         self.criterion = nn.MSELoss()
 
         self.epochs = epochs
@@ -105,7 +101,6 @@ class Agent:
         action = torch.tensor(action).to(self.device)
         reward = torch.tensor(reward).to(self.device).float()
         next_state = torch.tensor(next_state).to(self.device).float()
-        done = torch.tensor(done).to(self.device)
 
         with torch.no_grad():
             q_target = self.target_model(next_state).max(1)[0]
@@ -135,7 +130,7 @@ class Agent:
 
         for epoch in tqdm(range(self.epochs)):
 
-            self.env.seed(randint(0, 42000))
+            # self.env.seed(randint(0, 42000))
 
             if done:
                 state = self.env.reset()
@@ -192,8 +187,8 @@ class Agent:
 
     def action_choice(self, state, epsilon, model):
         if random() < epsilon:
-            action = self.env.action_space.sample()
-
+            # action = self.env.action_space.sample()
+            action = randint(0, 4)
         else:
             action = model(torch.tensor(state).to(self.device).float()).max(0)[1].item()
 
@@ -207,7 +202,7 @@ class Agent:
 
         :param visualize: Выводить ли график. Если False,
         то график просто сохраняется в директорию
-        
+
         :param file_name: Имя файла для сохранеия графика,
             если не передано, будет взято имя,
             переданное в конструктор класса
@@ -303,7 +298,7 @@ class Agent:
         for _ in tqdm(range(epochs)):
             done = False
             live_time = 0
-            self.env.seed(randint(0, 2**17))
+            # self.env.seed(randint(0, 2**17))
             state = self.env.reset()
             self.target_model.eval()
 
