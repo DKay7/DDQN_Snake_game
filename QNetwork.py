@@ -1,4 +1,6 @@
 import torch
+import os
+from time import sleep
 from tqdm import tqdm
 import torch.optim as optim
 import torch.nn as nn
@@ -24,7 +26,6 @@ class Memory:
             self.position = (self.position+1) % self.capacity
 
     def sample(self, batch_size):
-
         return list(zip(*sample(self.memory, batch_size)))
 
     def __len__(self):
@@ -55,6 +56,7 @@ class DeepQNetwork(nn.Module):
         x = self.relu(self.fc1(x))
         x = self.relu(self.fc2(x))
         x = self.fc3(x)
+        x = f.softmax(x)
 
         return x
 
@@ -65,10 +67,10 @@ class Agent:
                  file_name,
                  max_epsilon,
                  min_epsilon,
-                 target_update=1000,
+                 target_update=1024,
                  memory_size=4096,
                  epochs=25,
-                 batch_size=16):
+                 batch_size=64):
 
         self.gamma = 0.97
         self.max_epsilon = max_epsilon
@@ -81,14 +83,20 @@ class Agent:
         self.device = torch.device("cuda")
 
         self.memory = Memory(capacity=memory_size)
+
         self.env = env
-        # self.env.seed(randint(0, 420000))
 
-        # TODO сделать размеры внешних слоев зависящими от среды напрямую, без ручного ввода
-        self.model = DeepQNetwork(input_dims=2, fc1_dims=32, fc2_dims=32, n_actions=3)
-        self.target_model = DeepQNetwork(input_dims=2, fc1_dims=32, fc2_dims=32, n_actions=3)
+        self.model = DeepQNetwork(input_dims=env.observation_space.shape[0],
+                                  fc1_dims=64,
+                                  fc2_dims=64,
+                                  n_actions=self.env.action_space.n).to(self.device)
 
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        self.target_model = DeepQNetwork(input_dims=env.observation_space.shape[0],
+                                         fc1_dims=64,
+                                         fc2_dims=64,
+                                         n_actions=self.env.action_space.n).to(self.device)
+
+        self.optimizer = optim.AdamW(self.model.parameters(), lr=1e-3)
         self.criterion = nn.MSELoss()
 
         self.epochs = epochs
@@ -97,14 +105,16 @@ class Agent:
 
     def fit(self, batch):
         state, action, reward, next_state, done = batch
-        state = torch.tensor(state).to(self.device).float()
+        state = torch.tensor(state).float().to(self.device)
         action = torch.tensor(action).to(self.device)
-        reward = torch.tensor(reward).to(self.device).float()
-        next_state = torch.tensor(next_state).to(self.device).float()
+        reward = torch.tensor(reward).float().to(self.device)
+        next_state = torch.tensor(next_state).float().to(self.device)
+        done = torch.tensor(done).to(self.device)
 
         with torch.no_grad():
-            q_target = self.target_model(next_state).max(1)[0]
+            q_target = self.target_model(next_state).max(1)[0].view(-1)
             q_target = reward + self.gamma * q_target
+            q_target[done] = self.env.rewards['dead']
 
         q = self.model(state).gather(1, action.unsqueeze(1))
 
@@ -112,86 +122,88 @@ class Agent:
 
         loss = self.criterion(q, q_target.unsqueeze(1))
         loss.backward()
-
-        for param in self.model.parameters():
-            param.grad.data.clamp_(-1, 1)
-
         self.optimizer.step()
 
         return loss
 
-    def train(self):
+    def train(self, max_steps=2**14, load_hist=True):
 
-        done = True
-        new_state = None
-        eval_reward = None
-        best_eval_reward = float('-inf')
-        best_params = None
+        if load_hist:
+            self.get_history()
 
-        for epoch in tqdm(range(self.epochs)):
+        max_steps = max_steps
+        loss = 0
 
-            # self.env.seed(randint(0, 42000))
+        for epoch in tqdm(range(len(self.history), self.epochs-len(self.history))):
+            step = 0
 
-            if done:
-                state = self.env.reset()
-            else:
-                state = new_state
+            episode_rewards = []
+            state = self.env.reset()
 
-            epsilon = (self.max_epsilon - self.min_epsilon) * epoch / self.epochs
-            action = self.action_choice(state, epsilon, self.model)
+            while step < max_steps:
+                step += 1
 
-            new_state, reward, done, _ = self.env.step(action)
+                epsilon = (self.max_epsilon - self.min_epsilon) * (1 - epoch / self.epochs)
+                action = self.action_choice(state, epsilon, self.model)
+                next_state, reward, done, _ = self.env.step(action)
 
-            modified_reward = self.modified_reward(reward, state, new_state)
+                new_distance = abs(next_state[0] - next_state[2]) + abs(next_state[1] - next_state[3])
+                old_distance = abs(state[0]-state[2]) + abs(state[1]-state[3])
 
-            self.memory.push((state, action, modified_reward, new_state, done))
+                reward = 10 * reward - torch.exp(torch.tensor(old_distance-new_distance, dtype=torch.float64))
+
+                episode_rewards.append(reward)
+
+                if done:
+                    step = max_steps
+
+                    total_reward = sum(episode_rewards)
+                    self.memory.push((state, action, reward, next_state, done))
+
+                    tqdm.write(f'Episode: {epoch+len(self.history)},\n' +
+                               f'Total reward: {total_reward},\n' +
+                               f'Training loss: {loss:.4f},\n' +
+                               f'Explore P: {epsilon:.4f},\n' +
+                               f'Action: {action}\n')
+
+                else:
+                    self.memory.push((state, action, reward, next_state, done))
+                    state = next_state
 
             if epoch % self.target_update == 0:
                 self.target_model.load_state_dict(self.model.state_dict())
-                eval_reward = self.eval_epoch()
-                self.history.append(eval_reward)
-
-                if eval_reward > best_eval_reward:
-                    best_eval_reward = eval_reward
-                    best_params = self.target_model.state_dict()
+                eval_reward, step = self.eval_epoch(max_steps)
+                self.history.append(step)
 
             if epoch > self.batch_size:
                 loss = self.fit(self.memory.sample(batch_size=self.batch_size))
 
-                tqdm.write('epoch: {0},\tloss: {1},\tlast eval reward: {2}'.format(epoch,
-                                                                                   loss.item(),
-                                                                                   eval_reward).expandtabs())
-        self.target_model.load_state_dict(best_params)
-        self.save_model(self.model, type_='optim')
-        self.save_model(self.target_model, type_='target')
+            self.save_history()
+            self.save_model()
 
-    def modified_reward(self, reward, state, new_state):
-        modify_reward = reward + 300 * (abs(new_state[1]) - self.gamma * abs(state[1]))
-        return modify_reward
+        self.save_model()
 
-    def eval_epoch(self):
+    def eval_epoch(self, max_steps):
         state = self.env.reset()
         total_reward = 0
         done = False
+        step = 0
 
-        self.target_model.eval()
-
-        while not done:
-            action = self.action_choice(state, 0, self.target_model)
+        while not done and step <= max_steps:
+            step += 1
+            action = self.action_choice(state, 0, self.model)
             state, reward, done, _ = self.env.step(action)
             total_reward += reward
 
-        self.target_model.train()
-
-        return total_reward
+        return total_reward, step
 
     def action_choice(self, state, epsilon, model):
         if random() < epsilon:
-            # action = self.env.action_space.sample()
-            action = randint(0, 4)
+            action = self.env.action_space.sample()
         else:
-            action = model(torch.tensor(state).to(self.device).float()).max(0)[1].item()
 
+            action = model(torch.tensor(state).to(self.device).float()).view(-1)
+            action = action.max(0)[1].item()
         return action
 
     def plotter(self, history=None, file_name=None, visualize=True):
@@ -236,20 +248,18 @@ class Agent:
         if visualize:
             plt.show()
 
-    def save_model(self, model, file_name=None, type_='optim'):
+    def save_model(self, file_name=None):
         if file_name is None:
             file_name = self.file_name
 
-        path = 'models/' + file_name + '_' + type_ + '.pth'
+        path = 'models/' + file_name + '.pth'
 
-        torch.save(model.state_dict(), path)
+        torch.save(self.model.state_dict(), path)
 
-    def load_model(self, model, file_name=None, type_='optim'):
+    def load_model(self, file_name=None):
         """
         Загружает параметры нейронной сети
 
-        :param type_: тип модели (оптимизитор или таргет)
-        :param model: объект модели для записи загруженных параметров
         :param file_name: Имя файла для весов модели,
             если не передано, будет взято имя, переданное в конструктор класса
         """
@@ -257,9 +267,10 @@ class Agent:
         if file_name is None:
             file_name = self.file_name
 
-        path = 'models/' + file_name + '_' + type_ + '.pth'
+        path = 'models/' + file_name + '.pth'
 
-        model.load_state_dict(torch.load(path))
+        self.model.load_state_dict(torch.load(path))
+        self.target_model.load_state_dict(torch.load(path))
 
     def save_history(self, file_name=None):
         """
@@ -295,33 +306,40 @@ class Agent:
     def show_playing(self, visualize=True, print_=True, epochs=10):
         live_times = []
 
-        for _ in tqdm(range(epochs)):
+        for _ in range(epochs):
             done = False
             live_time = 0
-            # self.env.seed(randint(0, 2**17))
+            self.env.seed(randint(0, 2 ** 17))
             state = self.env.reset()
             self.target_model.eval()
 
             while not done:
-                action = self.action_choice(state=state, epsilon=0, model=self.target_model)
+                action = self.action_choice(state=state, epsilon=0, model=self.model)
 
-                new_state, reward, done, _ = self.env.step(action)
-                modified_reward = self.modified_reward(reward, state, new_state)
+                next_state, reward, done, _ = self.env.step(action)
+
+                mod_reward = 5 * reward - (abs(next_state[0] - next_state[2]) +
+                                           abs(next_state[1] - next_state[3]) -
+                                           (abs(state[0] - state[2]) +
+                                            abs(state[1] - state[3])))
 
                 if visualize:
-                    self.env.render(mode='human')
+                    sleep(0.4)
+                    os.system('cls')
+                    self.env.render(mode='console')
 
                 if print_:
-                    tqdm.write(f"Action: {action}\nReward: {reward}\nModified reward: {modified_reward}")
+                    print(f"Action: {action}\nReward: {reward}\nModified reward: {mod_reward}\n")
 
                 live_time += 1
 
-                state = new_state
+                state = next_state
 
             self.env.close()
             live_times.append(live_time)
 
         mean = sum(live_times)/epochs
-        unsuccessful = sum(map(lambda x: 0 if x < 200 else 1, live_times))
-        mean_unsuccessful = unsuccessful / epochs * 100
-        return live_times, mean,  unsuccessful, mean_unsuccessful
+        # TODO сделать подсчет неудачных игр
+        # unsuccessful = sum(map(lambda x: 0 if x < self.env.snake_game.max_steps else 1, live_times))
+        # mean_unsuccessful = unsuccessful / epochs * 100
+        return live_times, mean,  0, 0  # unsuccessful, mean_unsuccessful

@@ -1,4 +1,5 @@
 from QNetwork import DeepQNetwork, Agent, Memory
+from SnakeEnv import SnakeEnv
 
 import torch.optim as optim
 from torch import nn
@@ -6,30 +7,28 @@ import torch
 from random import randint
 import gym
 
-
-env = gym.make("MountainCar-v0")
+env = SnakeEnv()
 
 agent = Agent(
     env=env,
-    file_name='test5',
-    max_epsilon=0.57,
-    min_epsilon=0.05,
-    epochs=100000
+    file_name='snake_1.1',
+    max_epsilon=0.9,
+    min_epsilon=0.0005,
+    epochs=2**19
 )
 
-# agent.load_model(agent.model, type_='optim')
-# agent.load_model(agent.target_model, type_='target')
-agent.train()
+# agent.load_model()
+agent.train(load_hist=False)
 agent.plotter()
 # c = input('press any key')
 
-# times, mean, unsuccessful, mean_unsuccessful = agent.show_playing(visualize=False,
-#                                                                   print_=False,
-#                                                                   epochs=20)
-#
-# print('Mean: ', mean,
-#       '\nUnsuccessful: ', unsuccessful,
-#       '\nMean unsuccessful: ', mean_unsuccessful, '%',
-#       '\nMax time: ', max(times),
-#       '\nMin time: ', min(times),
-#       sep='')
+times, mean, unsuccessful, mean_unsuccessful = agent.show_playing(visualize=True,
+                                                                  print_=True,
+                                                                  epochs=50)
+
+print('Mean: ', mean,
+      '\nUnsuccessful: ', unsuccessful,
+      '\nMean unsuccessful: ', mean_unsuccessful, '%',
+      '\nMax time: ', max(times),
+      '\nMin time: ', min(times),
+      sep='')
