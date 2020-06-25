@@ -56,7 +56,7 @@ class DeepQNetwork(nn.Module):
         x = self.relu(self.fc1(x))
         x = self.relu(self.fc2(x))
         x = self.fc3(x)
-        x = f.softmax(x)
+        x = f.softmax(x, dim=-1)
 
         return x
 
@@ -126,15 +126,12 @@ class Agent:
 
         return loss
 
-    def train(self, max_steps=2**14, load_hist=True):
-
-        if load_hist:
-            self.get_history()
+    def train(self, max_steps=2**10):
 
         max_steps = max_steps
         loss = 0
 
-        for epoch in tqdm(range(len(self.history), self.epochs-len(self.history))):
+        for epoch in tqdm(range(self.epochs)):
             step = 0
 
             episode_rewards = []
@@ -160,7 +157,7 @@ class Agent:
                     total_reward = sum(episode_rewards)
                     self.memory.push((state, action, reward, next_state, done))
 
-                    tqdm.write(f'Episode: {epoch+len(self.history)},\n' +
+                    tqdm.write(f'Episode: {epoch},\n' +
                                f'Total reward: {total_reward},\n' +
                                f'Training loss: {loss:.4f},\n' +
                                f'Explore P: {epsilon:.4f},\n' +
@@ -172,14 +169,12 @@ class Agent:
 
             if epoch % self.target_update == 0:
                 self.target_model.load_state_dict(self.model.state_dict())
-                eval_reward, step = self.eval_epoch(max_steps)
-                self.history.append(step)
+                eval_reward, step, snake_len = self.eval_epoch(max_steps)
+                self.save_model()
+                self.history.append((snake_len, step))
 
             if epoch > self.batch_size:
                 loss = self.fit(self.memory.sample(batch_size=self.batch_size))
-
-            self.save_history()
-            self.save_model()
 
         self.save_model()
 
@@ -195,7 +190,7 @@ class Agent:
             state, reward, done, _ = self.env.step(action)
             total_reward += reward
 
-        return total_reward, step
+        return total_reward, step, len(self.env.snake_game.body)
 
     def action_choice(self, state, epsilon, model):
         if random() < epsilon:
@@ -230,21 +225,26 @@ class Agent:
             file_name = self.file_name
 
         if history is None:
-            history = self.get_history()
+            print('Nothing to show')
+            return
 
         path = 'plots/' + file_name + '.png'
 
-        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(16, 10))
+        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(16, 10))
 
-        axes.plot(history, label="score per iterations")
+        steps, snake_len = zip(*history)
+        axes[0].plot(steps, label="livetime per iterations")
+        axes[1].plot(snake_len, label='snake len per iteration')
 
-        axes.set_xlabel('iterations')
-        axes.set_ylabel('score')
-        axes.set_xlim(left=0)
+        axes[0].set_xlabel('iterations')
+        axes[1].set_xlabel('iterations')
+        axes[0].set_ylabel('livetime')
+        axes[1].set_ylabel('snake len')
 
         fig.suptitle(self.file_name)
 
         fig.savefig(path)
+
         if visualize:
             plt.show()
 
@@ -272,38 +272,7 @@ class Agent:
         self.model.load_state_dict(torch.load(path))
         self.target_model.load_state_dict(torch.load(path))
 
-    def save_history(self, file_name=None):
-        """
-        Сохраняет историю обучения.
-
-        :param file_name: Имя файла для сохранеия истории,
-            если не передано, будет взято имя,
-            переданное в конструктор класса
-        """
-        if file_name is None:
-            file_name = self.file_name
-
-        with open('histories/' + file_name + '.pickle', 'wb') as file:
-            torch.save(self.history, file)
-
-    def get_history(self, file_name=None):
-        """
-
-        :param file_name: Имя файла для загрузки истории,
-            если не передано, будет взято имя,
-            переданное в конструктор класса
-        :return:
-        """
-        if file_name is None:
-            file_name = self.file_name
-
-        if self.history is None or self.history == []:
-            with open('histories/' + file_name + '.pickle', 'rb') as file:
-                self.history = torch.load(file)
-
-        return self.history
-
-    def show_playing(self, visualize=True, print_=True, epochs=10):
+    def show_playing(self, visualize=True, print_=True, epochs=10, mode='human'):
         live_times = []
 
         for _ in range(epochs):
@@ -311,9 +280,9 @@ class Agent:
             live_time = 0
             self.env.seed(randint(0, 2 ** 17))
             state = self.env.reset()
-            self.target_model.eval()
+            # self.target_model.eval()
 
-            while not done:
+            while not done and live_time < 2**17:
                 action = self.action_choice(state=state, epsilon=0, model=self.model)
 
                 next_state, reward, done, _ = self.env.step(action)
@@ -324,9 +293,13 @@ class Agent:
                                             abs(state[1] - state[3])))
 
                 if visualize:
-                    sleep(0.4)
-                    os.system('cls')
-                    self.env.render(mode='console')
+                    if mode == 'console':
+                        sleep(0.4)
+                        os.system('cls')
+                        self.env.render(mode='console')
+
+                    elif mode == 'human':
+                        self.env.render(mode='human')
 
                 if print_:
                     print(f"Action: {action}\nReward: {reward}\nModified reward: {mod_reward}\n")
@@ -339,7 +312,6 @@ class Agent:
             live_times.append(live_time)
 
         mean = sum(live_times)/epochs
-        # TODO сделать подсчет неудачных игр
         # unsuccessful = sum(map(lambda x: 0 if x < self.env.snake_game.max_steps else 1, live_times))
         # mean_unsuccessful = unsuccessful / epochs * 100
         return live_times, mean,  0, 0  # unsuccessful, mean_unsuccessful

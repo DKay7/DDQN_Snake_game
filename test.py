@@ -37,20 +37,31 @@ env = SnakeEnv()
 
 agent = Agent(
     env=env,
-    file_name='test5',
+    file_name='snake_2.0',
     max_epsilon=0.9,
     min_epsilon=0.0005,
     epochs=7**7
 )
 
-agent.load_model(agent.model, type_='optim')
-agent.load_model(agent.target_model, type_='target')
+agent.load_model()
 # agent.train()
 # agent.plotter()
 # c = input('press any key')
+state = env.reset()
+done = False
+
+# while not done:
+#     action = agent.action_choice(state=state, epsilon=0, model=agent.model)
+#     new_state, reward, done, _ = env.step(action)
+#
+#     image = env.render(mode='screenshot')
+#     image.show()
+#
+#     state = new_state
 
 times, mean, unsuccessful, mean_unsuccessful = agent.show_playing(visualize=True,
                                                                   print_=True,
+                                                                  mode='human',
                                                                   epochs=12)
 
 print('Mean: ', mean,
