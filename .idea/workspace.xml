@@ -16,26 +16,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73d58eda-9d1f-4630-9176-bdd917993619" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/models/snake_2.0.pth" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/neuron_snake.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/neuron_snake.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plots/snake_2.0.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/QNetwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/QNetwork.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SnakeEnv.py" beforeDir="false" afterPath="$PROJECT_DIR$/SnakeEnv.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/histories/snake_1.1.pickle" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/snake_1.1.pth" beforeDir="false" afterPath="$PROJECT_DIR$/models/snake_1.1.pth" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/test1_optim.pth" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/test1_target.pth" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/test2_optim.pth" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/test2_target.pth" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/test3_optim.pth" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/test3_target.pth" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/test4_optim.pth" beforeDir="false" afterPath="$PROJECT_DIR$/models/test4.pth" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/test4_target.pth" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots/kuku.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots/kuku1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots/test2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots/test5.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/snake_2.0.pth" beforeDir="false" afterPath="$PROJECT_DIR$/models/snake_2.0.pth" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -229,27 +215,27 @@
       <screen x="0" y="0" width="1440" height="860" />
     </state>
     <state x="384" y="116" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1440.860@0.0.1440.860" timestamp="1592502722253" />
-    <state x="894" y="230" key="FileChooserDialogImpl" timestamp="1592764820909">
+    <state x="576" y="59" key="FileChooserDialogImpl" timestamp="1593196286761">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state x="894" y="230" key="FileChooserDialogImpl/0.0.1440.860@0.0.1440.860" timestamp="1592764820909" />
+    <state x="576" y="59" key="FileChooserDialogImpl/0.0.1440.860@0.0.1440.860" timestamp="1593196286761" />
     <state x="1220" y="278" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1590401141950" />
-    <state width="1385" height="228" key="GridCell.Tab.0.bottom" timestamp="1593125508903">
+    <state width="1385" height="275" key="GridCell.Tab.0.bottom" timestamp="1593194876085">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="228" key="GridCell.Tab.0.bottom/0.0.1440.860@0.0.1440.860" timestamp="1593125508903" />
-    <state width="1385" height="228" key="GridCell.Tab.0.center" timestamp="1593125508903">
+    <state width="1385" height="275" key="GridCell.Tab.0.bottom/0.0.1440.860@0.0.1440.860" timestamp="1593194876085" />
+    <state width="1385" height="275" key="GridCell.Tab.0.center" timestamp="1593194876085">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="228" key="GridCell.Tab.0.center/0.0.1440.860@0.0.1440.860" timestamp="1593125508903" />
-    <state width="1385" height="228" key="GridCell.Tab.0.left" timestamp="1593125508903">
+    <state width="1385" height="275" key="GridCell.Tab.0.center/0.0.1440.860@0.0.1440.860" timestamp="1593194876085" />
+    <state width="1385" height="275" key="GridCell.Tab.0.left" timestamp="1593194876085">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="228" key="GridCell.Tab.0.left/0.0.1440.860@0.0.1440.860" timestamp="1593125508903" />
-    <state width="1385" height="228" key="GridCell.Tab.0.right" timestamp="1593125508903">
+    <state width="1385" height="275" key="GridCell.Tab.0.left/0.0.1440.860@0.0.1440.860" timestamp="1593194876085" />
+    <state width="1385" height="275" key="GridCell.Tab.0.right" timestamp="1593194876085">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="228" key="GridCell.Tab.0.right/0.0.1440.860@0.0.1440.860" timestamp="1593125508903" />
+    <state width="1385" height="275" key="GridCell.Tab.0.right/0.0.1440.860@0.0.1440.860" timestamp="1593194876085" />
     <state width="1385" height="259" key="GridCell.Tab.1.bottom" timestamp="1592682059877">
       <screen x="0" y="0" width="1440" height="860" />
     </state>

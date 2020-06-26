@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from copy import deepcopy
+from torchvision import transforms
 from random import random, randint, sample
 
 
@@ -59,6 +60,35 @@ class DeepQNetwork(nn.Module):
         x = f.softmax(x, dim=-1)
 
         return x
+
+
+class DeepConvQNet(nn.Module):
+    def __init__(self, h, w, outputs):
+        super(DeepConvQNet, self).__init__()
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=5, stride=2)
+        self.bn1 = nn.BatchNorm2d(16)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=5, stride=2)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.conv3 = nn.Conv2d(32, 32, kernel_size=5, stride=2)
+        self.bn3 = nn.BatchNorm2d(32)
+
+        # Number of Linear input connections depends on output of conv2d layers
+        # and therefore the input image size, so compute it.
+        def conv2d_size_out(size, kernel_size=5, stride=2):
+            return (size - (kernel_size - 1) - 1) // stride + 1
+
+        conv_w = conv2d_size_out(conv2d_size_out(conv2d_size_out(w)))
+        conv_h = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
+        linear_input_size = conv_w * conv_h * 32
+        self.head = nn.Linear(linear_input_size, outputs)
+
+    # Called with either one element to determine next action, or a batch
+    # during optimization. Returns tensor([[left0exp,right0exp]...]).
+    def forward(self, x):
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.bn3(self.conv3(x)))
+        return self.head(x.view(x.size(0), -1))
 
 
 class Agent:
@@ -201,7 +231,17 @@ class Agent:
             action = action.max(0)[1].item()
         return action
 
-    def plotter(self, history=None, file_name=None, visualize=True):
+    def get_screen(self):
+        transformations = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+        image = self.env.render(mode='screenshot')
+        image = transformations(image)
+
+        return image
+
+    def plotter(self, file_name=None, visualize=True):
         """
         Строит графики точности и ошибки от эпохи обучения,
         затем сохраняет их под именем, переданным в конструктор
@@ -213,20 +253,16 @@ class Agent:
         :param file_name: Имя файла для сохранеия графика,
             если не передано, будет взято имя,
             переданное в конструктор класса
-
-        :param history: история обучения, по которой
-            нужно строить график. Если не передано, то
-            будет использована история из директории
-            /histories с именем файла, переданным в
-            конструктор класса
         """
 
         if file_name is None:
             file_name = self.file_name
 
-        if history is None:
+        if self.history is None:
             print('Nothing to show')
             return
+        else:
+            history = self.history
 
         path = 'plots/' + file_name + '.png'
 
@@ -272,18 +308,20 @@ class Agent:
         self.model.load_state_dict(torch.load(path))
         self.target_model.load_state_dict(torch.load(path))
 
-    def show_playing(self, visualize=True, print_=True, epochs=10, mode='human'):
+    def show_playing(self, visualize=True, print_=True, type_='model', epochs=10, mode='human'):
         live_times = []
 
-        for _ in range(epochs):
+        for _ in tqdm(range(epochs)):
             done = False
             live_time = 0
             self.env.seed(randint(0, 2 ** 17))
             state = self.env.reset()
-            # self.target_model.eval()
 
             while not done and live_time < 2**17:
-                action = self.action_choice(state=state, epsilon=0, model=self.model)
+                if type_ == 'model':
+                    action = self.action_choice(state=state, epsilon=0, model=self.model)
+                else:
+                    action = self.env.action_space.sample()
 
                 next_state, reward, done, _ = self.env.step(action)
 

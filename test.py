@@ -61,7 +61,7 @@ done = False
 
 times, mean, unsuccessful, mean_unsuccessful = agent.show_playing(visualize=True,
                                                                   print_=True,
-                                                                  mode='human',
+                                                                  type_='model',
                                                                   epochs=12)
 
 print('Mean: ', mean,

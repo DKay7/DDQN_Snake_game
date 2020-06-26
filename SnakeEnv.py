@@ -84,9 +84,8 @@ class SnakeGame:
 
             self.score += self.reward_for_prize
 
-            self.prize = self.paste_prize()
-
             self.body.append(Block(*self.last_cords))
+            self.prize = self.paste_prize()
 
             return True
 
@@ -104,7 +103,7 @@ class SnakeGame:
                           color='blue')
 
             for block in self.body:
-                if not (prize.x == block.x and prize.y == block.y):
+                if prize.x != block.x and prize.y != block.y:
                     coordinates_equality = False
                     break
 
@@ -199,16 +198,16 @@ class SnakeEnv(gym.Env):
         if self.seed is not None:
             np.random.seed(seed)
 
+        self.snake_game = SnakeGame(self.field_size,
+                                    np.random.randint(0, self.field_size-2))
+
         self.rewards = {
             'eat_prize': 30,
             'dead': -100,
-            'step': -2,
+            'step': -7 + len(self.snake_game.body),
             'wrong_step': -10,
             'circle': -10 - 2 * self.field_size * 4
         }
-
-        self.snake_game = SnakeGame(self.field_size,
-                                    np.random.randint(0, self.field_size-2))
 
         self.action_space = spaces.Discrete(len(self.snake_game.actions))
         self.observation_space = spaces.Box(np.array([0, 0, 0, 0, 2]).astype(np.float32),

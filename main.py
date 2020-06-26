@@ -15,17 +15,16 @@ agent = Agent(
     max_epsilon=1,
     min_epsilon=0.0005,
     target_update=1000,
-    epochs=2**21
+    epochs=2**19
 )
 
 agent.load_model()
 agent.train()
 agent.plotter()
-# c = input('press any key')
 
-times, mean, unsuccessful, mean_unsuccessful = agent.show_playing(visualize=True,
-                                                                  print_=True,
-                                                                  epochs=50)
+times, mean, unsuccessful, mean_unsuccessful = agent.show_playing(visualize=False,
+                                                                  print_=False,
+                                                                  epochs=500)
 
 print('Mean: ', mean,
       '\nUnsuccessful: ', unsuccessful,
