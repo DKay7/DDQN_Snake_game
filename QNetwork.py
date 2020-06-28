@@ -85,9 +85,10 @@ class DeepConvQNet(nn.Module):
     # Called with either one element to determine next action, or a batch
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x)))
-        x = F.relu(self.bn2(self.conv2(x)))
-        x = F.relu(self.bn3(self.conv3(x)))
+        x = f.relu(self.bn1(self.conv1(x)))
+        x = f.relu(self.bn2(self.conv2(x)))
+        x = f.relu(self.bn3(self.conv3(x)))
+
         return self.head(x.view(x.size(0), -1))
 
 
@@ -116,15 +117,23 @@ class Agent:
 
         self.env = env
 
-        self.model = DeepQNetwork(input_dims=env.observation_space.shape[0],
-                                  fc1_dims=64,
-                                  fc2_dims=64,
-                                  n_actions=self.env.action_space.n).to(self.device)
+        # self.model = DeepQNetwork(input_dims=env.observation_space.shape[0],
+        #                           fc1_dims=64,
+        #                           fc2_dims=64,
+        #                           n_actions=self.env.action_space.n).to(self.device)
+        #
+        # self.target_model = DeepQNetwork(input_dims=env.observation_space.shape[0],
+        #                                  fc1_dims=64,
+        #                                  fc2_dims=64,
+        #                                  n_actions=self.env.action_space.n).to(self.device)
 
-        self.target_model = DeepQNetwork(input_dims=env.observation_space.shape[0],
-                                         fc1_dims=64,
-                                         fc2_dims=64,
-                                         n_actions=self.env.action_space.n).to(self.device)
+        self.model = DeepConvQNet(h=self.env.field_size * self.env.cell_size,
+                                  w=self.env.field_size * self.env.cell_size,
+                                  outputs=self.env.action_space.n).to(self.device)
+
+        self.target_model = DeepConvQNet(h=self.env.field_size * self.env.cell_size,
+                                         w=self.env.field_size * self.env.cell_size,
+                                         outputs=self.env.action_space.n).to(self.device)
 
         self.optimizer = optim.AdamW(self.model.parameters(), lr=1e-3)
         self.criterion = nn.MSELoss()
@@ -135,10 +144,11 @@ class Agent:
 
     def fit(self, batch):
         state, action, reward, next_state, done = batch
-        state = torch.tensor(state).float().to(self.device)
+
+        state = torch.stack(state).to(self.device)
+        next_state = torch.stack(next_state).to(self.device)
         action = torch.tensor(action).to(self.device)
         reward = torch.tensor(reward).float().to(self.device)
-        next_state = torch.tensor(next_state).float().to(self.device)
         done = torch.tensor(done).to(self.device)
 
         with torch.no_grad():
@@ -153,36 +163,47 @@ class Agent:
         loss = self.criterion(q, q_target.unsqueeze(1))
         loss.backward()
         self.optimizer.step()
+        
+        # for param in self.model.parameters():
+        #     param.grad.data.clamp_(-5, 5)
 
         return loss
 
-    def train(self, max_steps=2**10):
+    def train(self, max_steps=2**10, save_model_freq=100):
 
         max_steps = max_steps
         loss = 0
 
         for epoch in tqdm(range(self.epochs)):
             step = 0
+            done = False
+            torch.cuda.empty_cache()
+            self.env.seed(randint(0, self.epochs//2))
 
             episode_rewards = []
-            state = self.env.reset()
+            state_vector = self.env.reset()
+            state = self.get_screen()
 
-            while step < max_steps:
+            while not done and step < max_steps:
                 step += 1
 
                 epsilon = (self.max_epsilon - self.min_epsilon) * (1 - epoch / self.epochs)
+
                 action = self.action_choice(state, epsilon, self.model)
-                next_state, reward, done, _ = self.env.step(action)
+                next_state_vector, reward, done, _ = self.env.step(action)
+                next_state = self.get_screen()
 
-                new_distance = abs(next_state[0] - next_state[2]) + abs(next_state[1] - next_state[3])
-                old_distance = abs(state[0]-state[2]) + abs(state[1]-state[3])
+                new_distance = abs(next_state_vector[0] - next_state_vector[2]) + \
+                    abs(next_state_vector[1] - next_state_vector[3])
 
-                reward = 10 * reward - torch.exp(torch.tensor(old_distance-new_distance, dtype=torch.float64))
+                old_distance = abs(state_vector[0] - state_vector[2]) + \
+                    abs(state_vector[1] - state_vector[3])
+
+                reward = 10 * reward - torch.exp(torch.tensor(new_distance - old_distance, dtype=torch.float64))
 
                 episode_rewards.append(reward)
 
-                if done:
-                    step = max_steps
+                if done or step == max_steps:
 
                     total_reward = sum(episode_rewards)
                     self.memory.push((state, action, reward, next_state, done))
@@ -196,12 +217,15 @@ class Agent:
                 else:
                     self.memory.push((state, action, reward, next_state, done))
                     state = next_state
+                    state_vector = next_state_vector
 
             if epoch % self.target_update == 0:
                 self.target_model.load_state_dict(self.model.state_dict())
+
+            if epoch % save_model_freq == 0:
                 eval_reward, step, snake_len = self.eval_epoch(max_steps)
-                self.save_model()
                 self.history.append((snake_len, step))
+                self.save_model()
 
             if epoch > self.batch_size:
                 loss = self.fit(self.memory.sample(batch_size=self.batch_size))
@@ -209,7 +233,8 @@ class Agent:
         self.save_model()
 
     def eval_epoch(self, max_steps):
-        state = self.env.reset()
+        _ = self.env.reset()
+        state = self.get_screen()
         total_reward = 0
         done = False
         step = 0
@@ -217,8 +242,10 @@ class Agent:
         while not done and step <= max_steps:
             step += 1
             action = self.action_choice(state, 0, self.model)
-            state, reward, done, _ = self.env.step(action)
+            _, reward, done, _ = self.env.step(action)
+            next_state = self.get_screen()
             total_reward += reward
+            state = next_state
 
         return total_reward, step, len(self.env.snake_game.body)
 
@@ -227,8 +254,9 @@ class Agent:
             action = self.env.action_space.sample()
         else:
 
-            action = model(torch.tensor(state).to(self.device).float()).view(-1)
+            action = model(torch.tensor(state.unsqueeze(0)).to(self.device)).view(-1)
             action = action.max(0)[1].item()
+
         return action
 
     def get_screen(self):
@@ -269,12 +297,12 @@ class Agent:
         fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(16, 10))
 
         steps, snake_len = zip(*history)
-        axes[0].plot(steps, label="livetime per iterations")
-        axes[1].plot(snake_len, label='snake len per iteration')
+        axes[0].plot(steps, label='snake len per iteration')
+        axes[1].plot(snake_len, label="lifetime per iterations")
 
         axes[0].set_xlabel('iterations')
         axes[1].set_xlabel('iterations')
-        axes[0].set_ylabel('livetime')
+        axes[0].set_ylabel('lifetime')
         axes[1].set_ylabel('snake len')
 
         fig.suptitle(self.file_name)
@@ -314,23 +342,26 @@ class Agent:
         for _ in tqdm(range(epochs)):
             done = False
             live_time = 0
-            self.env.seed(randint(0, 2 ** 17))
-            state = self.env.reset()
+            _ = self.env.reset()
+            state = self.get_screen()
 
-            while not done and live_time < 2**17:
+            while not done and live_time < 2**10:
+
                 if type_ == 'model':
                     action = self.action_choice(state=state, epsilon=0, model=self.model)
                 else:
                     action = self.env.action_space.sample()
 
-                next_state, reward, done, _ = self.env.step(action)
+                _, reward, done, _ = self.env.step(action)
+                next_state = self.get_screen()
 
-                mod_reward = 5 * reward - (abs(next_state[0] - next_state[2]) +
-                                           abs(next_state[1] - next_state[3]) -
-                                           (abs(state[0] - state[2]) +
-                                            abs(state[1] - state[3])))
+                # mod_reward = 5 * reward - (abs(next_state[0] - next_state[2]) +
+                #                            abs(next_state[1] - next_state[3]) -
+                #                            (abs(state[0] - state[2]) +
+                #                             abs(state[1] - state[3])))
 
                 if visualize:
+                    self.env.fps = 7
                     if mode == 'console':
                         sleep(0.4)
                         os.system('cls')
@@ -340,7 +371,7 @@ class Agent:
                         self.env.render(mode='human')
 
                 if print_:
-                    print(f"Action: {action}\nReward: {reward}\nModified reward: {mod_reward}\n")
+                    print(f"Action: {action}\nReward: {reward}")
 
                 live_time += 1
 

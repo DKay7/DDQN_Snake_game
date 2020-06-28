@@ -64,8 +64,8 @@ class SnakeGame:
     def crash_check(self, delta=(0, 0)):
 
         for block in self.body[1:]:
-            if block.x == self.body[0].x \
-               and block.y == self.body[0].y:
+            if block.x == self.body[0].x + delta[0] \
+               and block.y == self.body[0].y + delta[1]:
 
                 self.done = True
 
@@ -85,27 +85,30 @@ class SnakeGame:
             self.score += self.reward_for_prize
 
             self.body.append(Block(*self.last_cords))
-            self.prize = self.paste_prize()
+            self.prize = self.paste_prize(delta)
 
             return True
 
         else:
             return False
 
-    def paste_prize(self):
-        coordinates_equality = True
-        prize = [0, 0]
+    def paste_prize(self, delta=(0, 0)):
 
-        while coordinates_equality:
+        while True:
+            not_equals = 0
+            prize = list(np.random.randint(0, self.field_size, 2))
+            prize = Block(*prize)
 
-            prize = list(np.random.randint(0, self.field_size-1, 2))
-            prize = Block(*prize,
-                          color='blue')
+            if prize.x == self.body[0].x + delta[0]\
+                    and prize.y == self.body[0].y+ delta[1]:
+                not_equals += 1
 
-            for block in self.body:
-                if prize.x != block.x and prize.y != block.y:
-                    coordinates_equality = False
-                    break
+            for block in self.body[1:]:
+                if prize.x == block.x and prize.y == block.y:
+                    not_equals += 1
+
+            if not_equals == 0:
+                break
 
         return prize
 
@@ -126,6 +129,7 @@ class SnakeGame:
         done = self.crash_check((dx, dy))
         did_eat = self.snake_eat((dx, dy))
         is_snake_moving_circle = self.circle_checker()
+        print(done, did_eat)
 
         if not done:
 
@@ -172,7 +176,6 @@ class SnakeGame:
                  self.circle_check[i-2] == 2 and
                  self.circle_check[i-1] == 1 and
                  self.circle_check[i] == 0)):
-
                 return True
 
             else:
@@ -183,6 +186,7 @@ class SnakeEnv(gym.Env):
     def __init__(self,
                  field_size=7,
                  cell_size=50,
+                 fps=30,
                  seed=None):
 
         super(SnakeEnv, self).__init__()
@@ -191,6 +195,7 @@ class SnakeEnv(gym.Env):
         self.field_size = field_size
         self.seed(seed)
         self.cell_size = cell_size
+        self.fps = fps
 
         self.last_eight_acts = [-1 for _ in range(8)]
         self.index = 0
@@ -202,11 +207,11 @@ class SnakeEnv(gym.Env):
                                     np.random.randint(0, self.field_size-2))
 
         self.rewards = {
-            'eat_prize': 30,
-            'dead': -100,
-            'step': -7 + len(self.snake_game.body),
-            'wrong_step': -10,
-            'circle': -10 - 2 * self.field_size * 4
+            'eat_prize': 155,
+            'dead': -750,
+            'step': -2 * self.field_size // len(self.snake_game.body),
+            'wrong_step': -65,
+            'circle': -(350 + 2 * self.field_size)
         }
 
         self.action_space = spaces.Discrete(len(self.snake_game.actions))
@@ -261,7 +266,8 @@ class SnakeEnv(gym.Env):
 
         render_game = RenderGame(self.snake_game,
                                  self.field_size,
-                                 self.cell_size)
+                                 self.cell_size,
+                                 self.fps)
 
         if mode not in self.metadata['render.modes']:
             raise NotImplementedError()
