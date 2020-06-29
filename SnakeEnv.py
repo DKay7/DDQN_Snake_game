@@ -100,7 +100,7 @@ class SnakeGame:
             prize = Block(*prize)
 
             if prize.x == self.body[0].x + delta[0]\
-                    and prize.y == self.body[0].y+ delta[1]:
+                    and prize.y == self.body[0].y + delta[1]:
                 not_equals += 1
 
             for block in self.body[1:]:
@@ -129,7 +129,6 @@ class SnakeGame:
         done = self.crash_check((dx, dy))
         did_eat = self.snake_eat((dx, dy))
         is_snake_moving_circle = self.circle_checker()
-        print(done, did_eat)
 
         if not done:
 
@@ -207,11 +206,11 @@ class SnakeEnv(gym.Env):
                                     np.random.randint(0, self.field_size-2))
 
         self.rewards = {
-            'eat_prize': 155,
-            'dead': -750,
+            'eat_prize': 350,
+            'dead': -7500,
             'step': -2 * self.field_size // len(self.snake_game.body),
             'wrong_step': -65,
-            'circle': -(350 + 2 * self.field_size)
+            'circle': -(7500 + 2 * self.field_size)
         }
 
         self.action_space = spaces.Discrete(len(self.snake_game.actions))

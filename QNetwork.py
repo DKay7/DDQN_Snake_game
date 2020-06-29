@@ -2,6 +2,7 @@ import torch
 import os
 from time import sleep
 from tqdm import tqdm
+import gym
 import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as f
@@ -14,12 +15,24 @@ from random import random, randint, sample
 
 
 class Memory:
+    """
+    Класс-буфер для сохранения результатов в формате
+    (s, a, r, s', done).
+    """
     def __init__(self, capacity):
+        """
+        :param capacity: размер буфера памяти.
+        """
         self.capacity = capacity
         self.memory = []
         self.position = 0
 
     def push(self, element):
+        """
+        Данный метод сохраняет переданный элемент в циклический буфер.
+
+        :param element: Элемент для сохранения.
+        """
         if len(self.memory) < self.capacity:
             self.memory.append(element)
         else:
@@ -27,6 +40,15 @@ class Memory:
             self.position = (self.position+1) % self.capacity
 
     def sample(self, batch_size):
+        """
+        Данный метод возвращает случайную выборку из циклического буфера.
+
+        :param batch_size: Размер выборки.
+
+        :return: Выборка вида [(s1, s2, ... s-i), (a1, a2, ... a-i), (r1, r2, ... r-i),
+         (s'1, s'2, ... s'-i), (done1,  done2, ..., done-i)],
+            где i = batch_size - 1.
+        """
         return list(zip(*sample(self.memory, batch_size)))
 
     def __len__(self):
@@ -34,6 +56,9 @@ class Memory:
 
 
 class DeepQNetwork(nn.Module):
+    """
+    Класс полносвязной нейронной сети.
+    """
 
     def __init__(self, input_dims, fc1_dims, fc2_dims, n_actions):
 
@@ -63,6 +88,9 @@ class DeepQNetwork(nn.Module):
 
 
 class DeepConvQNet(nn.Module):
+    """
+    Класс сверточной нейронной сети.
+    """
     def __init__(self, h, w, outputs):
         super(DeepConvQNet, self).__init__()
         self.conv1 = nn.Conv2d(3, 16, kernel_size=5, stride=2)
@@ -72,8 +100,6 @@ class DeepConvQNet(nn.Module):
         self.conv3 = nn.Conv2d(32, 32, kernel_size=5, stride=2)
         self.bn3 = nn.BatchNorm2d(32)
 
-        # Number of Linear input connections depends on output of conv2d layers
-        # and therefore the input image size, so compute it.
         def conv2d_size_out(size, kernel_size=5, stride=2):
             return (size - (kernel_size - 1) - 1) // stride + 1
 
@@ -82,8 +108,6 @@ class DeepConvQNet(nn.Module):
         linear_input_size = conv_w * conv_h * 32
         self.head = nn.Linear(linear_input_size, outputs)
 
-    # Called with either one element to determine next action, or a batch
-    # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
         x = f.relu(self.bn1(self.conv1(x)))
         x = f.relu(self.bn2(self.conv2(x)))
@@ -93,15 +117,32 @@ class DeepConvQNet(nn.Module):
 
 
 class Agent:
+    """
+    Класс агента, обучающегося играть в игру.
+    """
     def __init__(self,
                  env,
                  file_name,
-                 max_epsilon,
-                 min_epsilon,
+                 max_epsilon=1,
+                 min_epsilon=0.01,
                  target_update=1024,
                  memory_size=4096,
                  epochs=25,
                  batch_size=64):
+        """
+
+
+        :type env: gym.Env
+
+        :param env gym.Env: Среда, в которой играет агент.
+        :param file_name: Имя файла для сохранения и загрузки моделей.
+        :param max_epsilon: Макимальная эпсилон для e-greedy police.
+        :param min_epsilon: Минимальная эпсилон для e-greedy police.
+        :param target_update: Частота копирования параметров из model в target_model.
+        :param memory_size: Размер буфера памяти.
+        :param epochs: Число эпох обучения.
+        :param batch_size: Размер батча.
+        """
 
         self.gamma = 0.97
         self.max_epsilon = max_epsilon
@@ -143,7 +184,18 @@ class Agent:
         self.history = []
 
     def fit(self, batch):
+        """
+        Метод одной эпохи обучения. Скармливает модели данные,
+        считает ошибку, берет градиент и делает шаг градиентного спуска.
+
+        :param batch: Батч данных.
+
+        :return: Возвращает ошибку для вывода в лог.
+        """
         state, action, reward, next_state, done = batch
+
+        # Распаковываем батч, оборачиваем данные в тензоры,
+        # перемещаем их на GPU
 
         state = torch.stack(state).to(self.device)
         next_state = torch.stack(next_state).to(self.device)
@@ -152,24 +204,39 @@ class Agent:
         done = torch.tensor(done).to(self.device)
 
         with torch.no_grad():
+            # В этой части кода мы предсказываем максимальное
+            # значение q-функции для следующего состояния,
+            # см. ур-е Беллмана
             q_target = self.target_model(next_state).max(1)[0].view(-1)
             q_target = reward + self.gamma * q_target
+
+            # Если следующее состояние конечное - то начисляем за него
+            # награду за смерть, предусмотренную средой
             q_target[done] = self.env.rewards['dead']
 
+        # Предсказываем q-функцию для действий из текущего состояния
         q = self.model(state).gather(1, action.unsqueeze(1))
 
+        # Зануляем градиент, делаем backward, считаем ошибку,
+        # делаем шаг оптимизатора
         self.optimizer.zero_grad()
 
         loss = self.criterion(q, q_target.unsqueeze(1))
         loss.backward()
         self.optimizer.step()
         
-        # for param in self.model.parameters():
-        #     param.grad.data.clamp_(-5, 5)
-
         return loss
 
     def train(self, max_steps=2**10, save_model_freq=100):
+        """
+        Метод обучения агента.
+
+        :param max_steps: Из-за того, что в некоторых средах
+            агент может существовать бесконечно долго,
+            необходимо установить максимальное число шагов.
+
+        :param save_model_freq: Частота сохранения параметров модели
+        """
 
         max_steps = max_steps
         loss = 0
@@ -177,33 +244,46 @@ class Agent:
         for epoch in tqdm(range(self.epochs)):
             step = 0
             done = False
+
+            # Очищаем кэш GPU
             torch.cuda.empty_cache()
+
+            # Задаем случайное состояние среды
             self.env.seed(randint(0, self.epochs//2))
 
             episode_rewards = []
+
+            # Получаем начальное состояние среды
             state_vector = self.env.reset()
             state = self.get_screen()
 
+            # Играем одну игру до проигрыша, или пока не сделаем
+            # максимальное число шагов
             while not done and step < max_steps:
                 step += 1
 
+                # Считаем epsilon для e-greedy police
                 epsilon = (self.max_epsilon - self.min_epsilon) * (1 - epoch / self.epochs)
 
+                # Выбираем действие с помощью e-greedy police
                 action = self.action_choice(state, epsilon, self.model)
+
+                # Получаем новое состояние среды
                 next_state_vector, reward, done, _ = self.env.step(action)
                 next_state = self.get_screen()
 
-                new_distance = abs(next_state_vector[0] - next_state_vector[2]) + \
-                    abs(next_state_vector[1] - next_state_vector[3])
-
-                old_distance = abs(state_vector[0] - state_vector[2]) + \
-                    abs(state_vector[1] - state_vector[3])
-
-                reward = 10 * reward - torch.exp(torch.tensor(new_distance - old_distance, dtype=torch.float64))
+                # new_distance = abs(next_state_vector[0] - next_state_vector[2]) + \
+                #     abs(next_state_vector[1] - next_state_vector[3])
+                #
+                # old_distance = abs(state_vector[0] - state_vector[2]) + \
+                #     abs(state_vector[1] - state_vector[3])
+                #
+                # reward = reward - 5 * (new_distance - old_distance)
 
                 episode_rewards.append(reward)
 
                 if done or step == max_steps:
+                    # Если игра закончилась, добавляем опыт в память
 
                     total_reward = sum(episode_rewards)
                     self.memory.push((state, action, reward, next_state, done))
@@ -215,24 +295,45 @@ class Agent:
                                f'Action: {action}\n')
 
                 else:
+                    # Иначе - добавляем опыт в память и переходим в новое состояние
                     self.memory.push((state, action, reward, next_state, done))
                     state = next_state
                     state_vector = next_state_vector
 
             if epoch % self.target_update == 0:
+                # Каждые target_update эпох копируем параметры модели в target_model,
+                # согласно алгоритму
                 self.target_model.load_state_dict(self.model.state_dict())
 
             if epoch % save_model_freq == 0:
+                # Каждые save_model_freq эпох сохраняем модель
+                # и играем тестовую игру, чтобы оценить модель
                 eval_reward, step, snake_len = self.eval_epoch(max_steps)
                 self.history.append((snake_len, step))
                 self.save_model()
 
             if epoch > self.batch_size:
+                # Поскольку изначально наш буфер пуст, нам нужно наполнить его,
+                # прежде чем учить модель. Если буфер достаточно полон, то учим модель.
                 loss = self.fit(self.memory.sample(batch_size=self.batch_size))
 
         self.save_model()
 
     def eval_epoch(self, max_steps):
+        """
+        Метод оценки модели. По сути бесполезен, но я его оставил,
+        ради красивых графиков.
+
+        Играет одну игру, собирая с нее разные данные.
+
+        :param max_steps: Из-за того, что в некоторых средах
+            агент может существовать бесконечно долго,
+            необходимо установить максимальное число шагов.
+
+        :return: Возвращает общую награду, полученную агентом,
+            Количество сделанных шагов (т.е. относительное
+            время жизни в среде) и длину тела змейки.
+        """
         _ = self.env.reset()
         state = self.get_screen()
         total_reward = 0
@@ -250,16 +351,39 @@ class Agent:
         return total_reward, step, len(self.env.snake_game.body)
 
     def action_choice(self, state, epsilon, model):
+        """
+        Метод, реализующий e-greedy политику выбора действий.
+        С вероятностью, равной e, будет выбрано случайное действие,
+        с вероятностью, равной 1-e, будет выбрано действие,
+        предсказанное моделью.
+
+        :param state: Состояние, на основе которого модель делает предсказание.
+        :param epsilon: Вероятность совершения случайного действия.
+        :param model: Модель, которая будет предсказывать действие.
+
+        :return: Возвращает выбранное действие.
+        """
         if random() < epsilon:
+            # Выбираем случайное действие из возможных,
+            # если случайное число меньше epsilon
             action = self.env.action_space.sample()
         else:
-
+            # Иначе предсказываем полезность каждого действия из даного состояния
             action = model(torch.tensor(state.unsqueeze(0)).to(self.device)).view(-1)
+            # И берем argmax() от предсказания, чтобы определить, какое действие
+            # лучше всего совершить
             action = action.max(0)[1].item()
 
         return action
 
     def get_screen(self):
+        """
+        Метод, получающий скриншот экрана для свертночной
+        нейронной сети.
+
+        :return: Возвращает объект torch.Tensor(),
+            содержащий скриншот состояния.
+        """
         transformations = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -271,7 +395,7 @@ class Agent:
 
     def plotter(self, file_name=None, visualize=True):
         """
-        Строит графики точности и ошибки от эпохи обучения,
+        Строит графики времени жизни и длины змеи от эпохи обучения,
         затем сохраняет их под именем, переданным в конструктор
         класса
 
@@ -313,6 +437,13 @@ class Agent:
             plt.show()
 
     def save_model(self, file_name=None):
+        """
+        Метод, сохранящиюй параметры модели
+
+        :param file_name: Имя файла для сохранеия графика,
+            если не передано, будет взято имя,
+            переданное в конструктор класса
+        """
         if file_name is None:
             file_name = self.file_name
 
@@ -337,6 +468,30 @@ class Agent:
         self.target_model.load_state_dict(torch.load(path))
 
     def show_playing(self, visualize=True, print_=True, type_='model', epochs=10, mode='human'):
+        """
+        Метод, показывающий, как агент играет.
+
+
+
+        :param visualize: Показывать ли игру, или только собрать статистику.
+            Обратите внимание, параметр всегда True, если действие предсказывает
+            свертночная нейронная сеть, в силу особенность получения изображения
+            в библиотеке  pyGame.
+
+        :param print_: Выводить ли статистику по ходу игры.
+
+        :param type_: 'model', если действия должна выбирать модель,
+            'random', если действия должны быть случайным
+            (что может пригодится, например, для оценки модели)
+
+        :param epochs: Количество игр, которые сыграет модель.
+
+        :param mode: Режим рендера среды. 'human' - отдельное окно pyGame,
+            'console' - печать в консоли
+
+
+        :return: Массив времени жизни в каждой из игр, среднее вермя жизни.
+        """
         live_times = []
 
         for _ in tqdm(range(epochs)):
@@ -354,11 +509,6 @@ class Agent:
 
                 _, reward, done, _ = self.env.step(action)
                 next_state = self.get_screen()
-
-                # mod_reward = 5 * reward - (abs(next_state[0] - next_state[2]) +
-                #                            abs(next_state[1] - next_state[3]) -
-                #                            (abs(state[0] - state[2]) +
-                #                             abs(state[1] - state[3])))
 
                 if visualize:
                     self.env.fps = 7
@@ -381,6 +531,5 @@ class Agent:
             live_times.append(live_time)
 
         mean = sum(live_times)/epochs
-        # unsuccessful = sum(map(lambda x: 0 if x < self.env.snake_game.max_steps else 1, live_times))
-        # mean_unsuccessful = unsuccessful / epochs * 100
-        return live_times, mean,  0, 0  # unsuccessful, mean_unsuccessful
+
+        return live_times, mean
