@@ -11,13 +11,13 @@ env = SnakeEnv(fps=70000)
 
 agent = Agent(
     env=env,
-    file_name='snake_7.1',
+    file_name='snake_7.2',
     max_epsilon=1,
     min_epsilon=0,
     target_update=2000,
     epochs=2**15,
     batch_size=16,
-    memory_size=5000
+    memory_size=8000
 )
 
 agent.load_model()

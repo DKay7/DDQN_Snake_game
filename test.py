@@ -37,7 +37,7 @@ env = SnakeEnv(field_size=7)
 
 agent = Agent(
     env=env,
-    file_name='snake_7.1',
+    file_name='snake_7.2',
     max_epsilon=0.9,
     min_epsilon=0.0005,
     epochs=7**7

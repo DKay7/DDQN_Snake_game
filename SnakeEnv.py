@@ -8,6 +8,12 @@ from gym.utils import seeding
 
 
 class Block:
+    """
+    Класс блока (вся игра состоит из "блоков" -
+        блок змейки, блок пустой клетки, блок яблока
+        и т.д.)
+    """
+
     def __init__(self, x, y, color='green'):
         self.x = x
         self.y = y
@@ -16,11 +22,15 @@ class Block:
                     self.y,
                     self.x + 1,
                     self.y + 1]
-
+    
         self.color = color
 
 
 class SnakeGame:
+    """
+    Класс игры змейка. Обработка всех событий, передвижение,
+        генерация яблока происходит тут.
+    """
     def __init__(self, field_size, position, max_steps=10, seed=None):
 
         self.field_size = field_size
@@ -62,6 +72,15 @@ class SnakeGame:
         }
 
     def crash_check(self, delta=(0, 0)):
+        """
+        Проверяет, не столкнется ли змейка с чем-нибудь,
+            если сделает шаг на delta
+
+        :param delta: (delta x, delta y) координаты,
+            на которые переместится змейка.
+
+        :return: True, если змейка ударилась, иначе False
+        """
 
         for block in self.body[1:]:
             if block.x == self.body[0].x + delta[0] \
@@ -79,6 +98,15 @@ class SnakeGame:
         return self.done
 
     def snake_eat(self, delta=(0, 0)):
+        """
+        Проверяет, не съест ли змейка яблоко,
+            если сделает шаг на delta
+
+        :param delta: (delta x, delta y) координаты,
+            на которые переместится змейка.
+
+        :return: True, если змейка съела яблоко, иначе False
+        """
         if self.body[0].x + delta[0] == self.prize.x \
            and self.body[0].y + delta[1] == self.prize.y:
 
@@ -93,6 +121,15 @@ class SnakeGame:
             return False
 
     def paste_prize(self, delta=(0, 0)):
+        """
+        Устанавливает яблоко, так, чтобы змейка не съела его
+            следующим ходом на delta
+
+        :param delta: (delta x, delta y) координаты,
+            на которые переместится змейка.
+
+        :return: Возвращает объект яблока
+        """
 
         while True:
             not_equals = 0
@@ -113,6 +150,15 @@ class SnakeGame:
         return prize
 
     def snake_move(self, action):
+        """
+        Метод, передвигающий змейку
+
+        :param action: код действия
+
+        :return: Новое состояние, завершилась ли игра,
+            съела ли змейка яблоко, двигается ли
+            змейка по бесконечному кругу.
+        """
 
         if action not in self.actions.keys():
             raise ValueError("Received invalid action={} which is not part of the action space".format(action))
@@ -157,14 +203,29 @@ class SnakeGame:
         return new_state, done, did_eat, is_snake_moving_circle
 
     def is_move_wrong(self, action):
+        """
+        Проверяет, что змейка не может ходить вправо,
+            пока дживется влево и т.д.
+
+        :param action: код действия
+
+        :return: True если действие запрещено, иначе False
+        """
         if self.actions[action][0] == -self.actions[self.last_action][0] \
-         and self.actions[action][1] == -self.actions[self.last_action][1]:
+                and self.actions[action][1] == -self.actions[self.last_action][1]:
             return True
 
         else:
             return False
 
     def circle_checker(self):
+        """
+        Змейка меня переиграла и ходила кругами,
+            этот метод нужен, чтобы переиграть ее.
+
+        :return: True, если змейка гуляет бесконечным
+            кругом, иначе False
+        """
         for i in range(3, len(self.circle_check)):
             if ((self.circle_check[i-3] == 0 and
                  self.circle_check[i-2] == 1 and
@@ -182,6 +243,10 @@ class SnakeGame:
 
 
 class SnakeEnv(gym.Env):
+    """
+    Удобнее было обернуть игру в класс
+        среды gym от openAI
+    """
     def __init__(self,
                  field_size=7,
                  cell_size=50,
@@ -208,9 +273,9 @@ class SnakeEnv(gym.Env):
         self.rewards = {
             'eat_prize': 350,
             'dead': -7500,
-            'step': -2 * self.field_size // len(self.snake_game.body),
-            'wrong_step': -65,
-            'circle': -(7500 + 2 * self.field_size)
+            'step': 0,
+            'wrong_step': -650,
+            'circle': -7500
         }
 
         self.action_space = spaces.Discrete(len(self.snake_game.actions))
@@ -222,6 +287,11 @@ class SnakeEnv(gym.Env):
                                                       self.field_size**2]).astype(np.float32))
 
     def reset(self):
+        """
+        Возвращает среду к начальному состоянию
+
+        :return: Состояние среды
+        """
 
         self.snake_game.__init__(self.field_size,
                                  np.random.randint(0, self.field_size-2))
@@ -231,6 +301,13 @@ class SnakeEnv(gym.Env):
                 len(self.snake_game.body)]
 
     def step(self, action):
+        """
+        Делает один шаг агента в среде
+
+        :param action: действие агента
+
+        :return: Состояние среды после шага
+        """
 
         state, done, did_eat, is_circle = self.snake_game.snake_move(action)
 
@@ -242,6 +319,19 @@ class SnakeEnv(gym.Env):
         return state, reward, done, info
 
     def get_reward(self, done, did_eat, is_circle, action):
+        """
+        Просчитывает награду агента
+
+        :param done: Закончилась ли игра
+
+        :param did_eat: Съел ли агент яблоко
+
+        :param is_circle: Движется ли агент по кругу
+
+        :param action: Действие агента
+
+        :return: Возвращает награду
+        """
         reward = 0
 
         if self.snake_game.is_move_wrong(action):
@@ -262,6 +352,13 @@ class SnakeEnv(gym.Env):
         return reward
 
     def render(self, mode='console'):
+        """
+        Отрисовывает среду
+
+        :param mode: Режим отрисовки: консоль, отдельное окно
+            или погтовка скриншота для обучения сверточной нс.
+
+        """
 
         render_game = RenderGame(self.snake_game,
                                  self.field_size,
@@ -294,6 +391,12 @@ class SnakeEnv(gym.Env):
             return render_game.take_screen()
 
     def seed(self, seed=None):
+        """
+        Задает сид среды
+
+        :param seed: Сид среды
+
+        """
         if seed is not None:
             np.random.seed(seed)
 
@@ -302,6 +405,9 @@ class SnakeEnv(gym.Env):
 
 
 class RenderGame:
+    """
+    Дополнительный класс-помошник отрисовки среды
+    """
 
     def __init__(self, snake_game, field_size, cell_size, fps=7):
         pygame.init()
@@ -359,12 +465,24 @@ class RenderGame:
         self.screen.fill(self.colors['field'])
 
     def recount_cords(self, x, y):
+        """
+        Пересчет координат так, чтобы змейка не оказалась между клетками
+
+        :param x: х-координата
+        :param y: у-координа
+        :return: новые координаты
+        """
         new_x = x * self.cell_size + self.cell_size / 2
         new_y = y * self.cell_size + self.cell_size / 2
 
         return new_x, new_y
 
     def take_screen(self):
+        """
+        Делает скриншот окна с игрой
+
+        :return: PIL-картинка игры
+        """
         byte_image = pygame.image.tostring(self.screen, 'RGB')
         image = Image.frombytes('RGB', (self.ingame_size, self.ingame_size),
                                 byte_image)
@@ -372,6 +490,10 @@ class RenderGame:
         return image
 
     def update(self):
+        """
+        Обновляет спрайты всех блоков, для обновления картинки игры
+
+        """
 
         self.all_sprites.add(Sprite(
             *self.recount_cords(
@@ -405,10 +527,16 @@ class RenderGame:
 
     @staticmethod
     def close():
+        """
+        Выходит из игры
+        """
         pygame.quit()
 
 
 class Sprite(pygame.sprite.Sprite):
+    """
+    Вспомогательный класс спрайта.
+    """
     def __init__(self, x, y, cell_size, color='snake'):
         pygame.sprite.Sprite.__init__(self)
         self.x = x
@@ -435,4 +563,7 @@ class Sprite(pygame.sprite.Sprite):
         self.rect.center = (self.x, self.y)
 
     def update(self):
+        """
+        Обновляет спрайты.
+        """
         self.rect.center = (self.x, self.y)

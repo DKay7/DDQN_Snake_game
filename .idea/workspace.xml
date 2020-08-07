@@ -16,13 +16,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73d58eda-9d1f-4630-9176-bdd917993619" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/models/snake_7.2.pth" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plots/snake_7.2.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Environment.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game_Parameters.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/QNetwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/QNetwork.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SnakeEnv.py" beforeDir="false" afterPath="$PROJECT_DIR$/SnakeEnv.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/snake_7.1.pth" beforeDir="false" afterPath="$PROJECT_DIR$/models/snake_7.1.pth" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots/snake_7.1.png" beforeDir="false" afterPath="$PROJECT_DIR$/plots/snake_7.1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prize_object.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/snake.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -59,10 +63,10 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../sat" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.main">
+  <component name="RunManager" selected="Python.test">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="neuron_snake" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -156,27 +160,27 @@
       <screen x="0" y="0" width="1440" height="860" />
     </state>
     <state x="384" y="116" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1440.860@0.0.1440.860" timestamp="1592502722253" />
-    <state x="576" y="59" key="FileChooserDialogImpl" timestamp="1593428474022">
+    <state x="576" y="59" key="FileChooserDialogImpl" timestamp="1596804521397">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state x="576" y="59" key="FileChooserDialogImpl/0.0.1440.860@0.0.1440.860" timestamp="1593428474022" />
+    <state x="576" y="59" key="FileChooserDialogImpl/0.0.1440.860@0.0.1440.860" timestamp="1596804521397" />
     <state x="1220" y="278" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1590401141950" />
-    <state width="1385" height="205" key="GridCell.Tab.0.bottom" timestamp="1593455770361">
+    <state width="1385" height="205" key="GridCell.Tab.0.bottom" timestamp="1593532597527">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="205" key="GridCell.Tab.0.bottom/0.0.1440.860@0.0.1440.860" timestamp="1593455770361" />
-    <state width="1385" height="205" key="GridCell.Tab.0.center" timestamp="1593455770361">
+    <state width="1385" height="205" key="GridCell.Tab.0.bottom/0.0.1440.860@0.0.1440.860" timestamp="1593532597527" />
+    <state width="1385" height="205" key="GridCell.Tab.0.center" timestamp="1593532597525">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="205" key="GridCell.Tab.0.center/0.0.1440.860@0.0.1440.860" timestamp="1593455770361" />
-    <state width="1385" height="205" key="GridCell.Tab.0.left" timestamp="1593455770360">
+    <state width="1385" height="205" key="GridCell.Tab.0.center/0.0.1440.860@0.0.1440.860" timestamp="1593532597525" />
+    <state width="1385" height="205" key="GridCell.Tab.0.left" timestamp="1593532597525">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="205" key="GridCell.Tab.0.left/0.0.1440.860@0.0.1440.860" timestamp="1593455770360" />
-    <state width="1385" height="205" key="GridCell.Tab.0.right" timestamp="1593455770361">
+    <state width="1385" height="205" key="GridCell.Tab.0.left/0.0.1440.860@0.0.1440.860" timestamp="1593532597525" />
+    <state width="1385" height="205" key="GridCell.Tab.0.right" timestamp="1593532597525">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state width="1385" height="205" key="GridCell.Tab.0.right/0.0.1440.860@0.0.1440.860" timestamp="1593455770361" />
+    <state width="1385" height="205" key="GridCell.Tab.0.right/0.0.1440.860@0.0.1440.860" timestamp="1593532597525" />
     <state width="1385" height="259" key="GridCell.Tab.1.bottom" timestamp="1592682059877">
       <screen x="0" y="0" width="1440" height="860" />
     </state>

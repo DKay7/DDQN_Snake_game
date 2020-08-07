@@ -223,6 +223,10 @@ class Agent:
 
         loss = self.criterion(q, q_target.unsqueeze(1))
         loss.backward()
+
+        for param in self.model.parameters():
+            param.data.clamp_(-1, 1)
+
         self.optimizer.step()
         
         return loss
@@ -247,9 +251,6 @@ class Agent:
 
             # Очищаем кэш GPU
             torch.cuda.empty_cache()
-
-            # Задаем случайное состояние среды
-            self.env.seed(randint(0, self.epochs//2))
 
             episode_rewards = []
 
@@ -497,6 +498,7 @@ class Agent:
         for _ in tqdm(range(epochs)):
             done = False
             live_time = 0
+
             _ = self.env.reset()
             state = self.get_screen()
 
