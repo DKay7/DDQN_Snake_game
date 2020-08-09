@@ -16,17 +16,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73d58eda-9d1f-4630-9176-bdd917993619" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/models/snake_7.2.pth" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/plots/snake_7.2.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Environment.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game_Parameters.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/QNetwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/QNetwork.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SnakeEnv.py" beforeDir="false" afterPath="$PROJECT_DIR$/SnakeEnv.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/snake_7.1.pth" beforeDir="false" afterPath="$PROJECT_DIR$/models/snake_7.1.pth" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prize_object.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/snake.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -67,27 +58,6 @@
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunManager" selected="Python.test">
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
-      <module name="neuron_snake" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="true" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="neuron_snake" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -109,9 +79,30 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="train" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="neuron_snake" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="C:\Users\DKay\PycharmProjects\DDQN_Snake_game\train.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="true" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <list>
-      <item itemvalue="Python.main" />
       <item itemvalue="Python.test" />
+      <item itemvalue="Python.train" />
     </list>
   </component>
   <component name="SvnConfiguration">
@@ -160,10 +151,10 @@
       <screen x="0" y="0" width="1440" height="860" />
     </state>
     <state x="384" y="116" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1440.860@0.0.1440.860" timestamp="1592502722253" />
-    <state x="576" y="59" key="FileChooserDialogImpl" timestamp="1596804521397">
+    <state x="576" y="59" key="FileChooserDialogImpl" timestamp="1596814892456">
       <screen x="0" y="0" width="1440" height="860" />
     </state>
-    <state x="576" y="59" key="FileChooserDialogImpl/0.0.1440.860@0.0.1440.860" timestamp="1596804521397" />
+    <state x="576" y="59" key="FileChooserDialogImpl/0.0.1440.860@0.0.1440.860" timestamp="1596814892456" />
     <state x="1220" y="278" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1590401141950" />
     <state width="1385" height="205" key="GridCell.Tab.0.bottom" timestamp="1593532597527">
       <screen x="0" y="0" width="1440" height="860" />
