@@ -411,7 +411,6 @@ class RenderGame:
 
     def __init__(self, snake_game, field_size, cell_size, fps=7):
         pygame.init()
-        pygame.mixer.init()
         self.all_sprites = pygame.sprite.Group()
 
         self.colors = {
