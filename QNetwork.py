@@ -2,7 +2,7 @@ import torch
 import os
 from time import sleep
 from tqdm import tqdm
-import gym
+import gymnasium as gym
 import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as f
@@ -75,7 +75,7 @@ class DeepQNetwork(nn.Module):
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
         self.fc3 = nn.Linear(self.fc2_dims, self.n_actions)
 
-        self.device = torch.device('cuda')
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.to(self.device)
 
     def forward(self, x):
@@ -152,7 +152,7 @@ class Agent:
         self.file_name = file_name
         self.batch_size = batch_size
 
-        self.device = torch.device("cuda")
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         self.memory = Memory(capacity=memory_size)
 
@@ -465,8 +465,8 @@ class Agent:
 
         path = 'models/' + file_name + '.pth'
 
-        self.model.load_state_dict(torch.load(path))
-        self.target_model.load_state_dict(torch.load(path))
+        self.model.load_state_dict(torch.load(path, map_location=self.device))
+        self.target_model.load_state_dict(torch.load(path, map_location=self.device))
 
     def show_playing(self, visualize=True, print_=True, type_='model', epochs=10, mode='human'):
         """

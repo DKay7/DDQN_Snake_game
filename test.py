@@ -5,8 +5,8 @@ import torch.optim as optim
 from torch import nn
 import torch
 from random import randint
-import gym
-
+import gymnasium
+import pygame
 
 # создаем объект среды
 # и самого агента

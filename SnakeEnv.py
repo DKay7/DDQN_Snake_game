@@ -1,10 +1,10 @@
-import gym
+import gymnasium as gym
 import pygame
 import numpy as np
 from PIL import Image
-from gym import spaces
+from gymnasium import spaces
 from functools import reduce
-from gym.utils import seeding
+from gymnasium.utils import seeding
 
 
 class Block:

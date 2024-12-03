@@ -1,11 +1,6 @@
-from QNetwork import DeepQNetwork, Agent, Memory
+from QNetwork import Agent 
 from SnakeEnv import SnakeEnv
 
-import torch.optim as optim
-from torch import nn
-import torch
-from random import randint
-import gym
 
 # создаем объект среды
 # и самого агента
